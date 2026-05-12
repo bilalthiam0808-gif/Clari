@@ -49,6 +49,7 @@ export default function ProjetsPage() {
   const [newProjectSlug, setNewProjectSlug] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [mounted, setMounted] = useState(false);
 
   // Formulaire
   const [clientName, setClientName] = useState("");
@@ -62,7 +63,7 @@ export default function ProjetsPage() {
     ]).then(([p, s]) => {
       if (Array.isArray(p)) setProjects(p);
       if (Array.isArray(s)) setServices(s);
-    });
+    }).finally(() => setMounted(true));
   }, []);
 
 
@@ -214,7 +215,7 @@ export default function ProjetsPage() {
         </div>
 
         {/* Recherche + filtres */}
-        {projects.length > 0 && (
+        {mounted && projects.length > 0 && (
           <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
@@ -277,7 +278,7 @@ export default function ProjetsPage() {
         </div>
 
         {/* Liste des projets */}
-        {(() => {
+        {!mounted ? null : (() => {
           const filtered = projects.filter(p => {
             const q = search.toLowerCase();
             const matchSearch = !q || p.clientName.toLowerCase().includes(q) || p.serviceName.toLowerCase().includes(q) || p.clientEmail.toLowerCase().includes(q);

@@ -43,11 +43,13 @@ export default function BriefsPage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<"all" | "brief" | "devis">("all");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     fetch("/api/projects")
       .then(r => r.json())
-      .then(data => { if (Array.isArray(data)) setProjects(data); });
+      .then(data => { if (Array.isArray(data)) setProjects(data); })
+      .finally(() => setMounted(true));
   }, []);
 
   const briefs = projects.filter(p => p.briefData);
@@ -89,7 +91,7 @@ export default function BriefsPage() {
         </div>
 
         {/* État vide */}
-        {briefs.length === 0 ? (
+        {!mounted ? null : briefs.length === 0 ? (
           <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "72px 20px", textAlign: "center" }}>
             <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "var(--surface2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none">

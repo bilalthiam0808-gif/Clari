@@ -53,6 +53,7 @@ export default function ServicesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     fetch("/api/services")
@@ -64,7 +65,8 @@ export default function ServicesPage() {
             .filter((c) => !DEFAULT_CATEGORIES.includes(c as string)) as string[];
           setCustomCategories(usedCustom);
         }
-      });
+      })
+      .finally(() => setMounted(true));
   }, []);
 
   // ─── Formulaire modal ───────────────────────────────────────────────────────
@@ -319,7 +321,7 @@ export default function ServicesPage() {
         })}
 
         {/* Si vraiment vide */}
-        {services.length === 0 && (
+        {mounted && services.length === 0 && (
           <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "60px 20px", textAlign: "center" }}>
             <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "16px" }}>Aucun service. Ajoute ta première prestation.</p>
             <button onClick={openCreateModal} style={{ background: "transparent", color: "var(--accent)", border: "0.5px solid var(--accent)", borderRadius: "10px", padding: "8px 16px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
