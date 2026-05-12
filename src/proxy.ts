@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 
 function expectedToken(): string {
-  const password = process.env.CLARI_PASSWORD ?? "";
-  const secret = process.env.CLARI_SESSION_SECRET ?? "";
+  const password = (process.env.CLARI_PASSWORD ?? "").trim();
+  const secret = (process.env.CLARI_SESSION_SECRET ?? "").trim();
   return createHash("sha256").update(password + secret).digest("hex");
 }
 

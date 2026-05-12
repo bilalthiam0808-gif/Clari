@@ -14,8 +14,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Mot de passe requis" }, { status: 400 });
   }
 
-  const storedPassword = process.env.CLARI_PASSWORD ?? "";
-  const inputBuf = Buffer.from(password);
+  const storedPassword = (process.env.CLARI_PASSWORD ?? "").trim();
+  const inputPassword = (password as string).trim();
+  const inputBuf = Buffer.from(inputPassword);
   const expectedBuf = Buffer.from(storedPassword);
 
   const isMatch =
