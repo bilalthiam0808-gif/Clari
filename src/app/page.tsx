@@ -32,9 +32,10 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("clari_projects");
-    if (saved) setProjects(JSON.parse(saved));
-    setMounted(true);
+    fetch("/api/projects")
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setProjects(data); })
+      .finally(() => setMounted(true));
   }, []);
 
   const total = projects.length;

@@ -45,8 +45,9 @@ export default function BriefsPage() {
   const [filter, setFilter] = useState<"all" | "brief" | "devis">("all");
 
   useEffect(() => {
-    const saved = localStorage.getItem("clari_projects");
-    if (saved) setProjects(JSON.parse(saved));
+    fetch("/api/projects")
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setProjects(data); });
   }, []);
 
   const briefs = projects.filter(p => p.briefData);

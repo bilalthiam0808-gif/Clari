@@ -19,71 +19,6 @@ type Service = {
   options: Option[];
 };
 
-// ─── Catalogue par défaut ─────────────────────────────────────────────────────
-
-const DEFAULT_SERVICES: Service[] = [
-  // ── GRAPHISME ──
-  {
-    id: "default_graphisme",
-    name: "Design graphic",
-    category: "Graphisme",
-    basePrice: "300",
-    description: "Logo, identité visuelle, charte graphique et supports marketing",
-    options: [
-      { id: "g_o1", label: "Identité visuelle complète (logo + charte)", price: "700" },
-      { id: "g_o2", label: "Version animée du logo", price: "150" },
-      { id: "g_o3", label: "Pack réseaux sociaux (bannières, avatars)", price: "200" },
-      { id: "g_o4", label: "Papeterie (carte de visite, en-tête)", price: "250" },
-      { id: "g_o5", label: "Packaging / étiquette produit", price: "300" },
-      { id: "g_o6", label: "Présentation PowerPoint / Google Slides", price: "200" },
-      { id: "g_o7", label: "Fichiers sources AI / EPS", price: "100" },
-      { id: "g_o8", label: "Révision supplémentaire", price: "80" },
-      { id: "g_express", label: "Express — livraison 1 semaine", price: "30", isPercent: true },
-      { id: "g_urgent", label: "Urgent — livraison 48h", price: "60", isPercent: true },
-    ],
-  },
-  // ── MOTION DESIGN ──
-  {
-    id: "default_motion",
-    name: "Motion design",
-    category: "Motion Design",
-    basePrice: "400",
-    description: "Animations, vidéos motion et habillage graphique pour vos contenus",
-    options: [
-      { id: "m_o1", label: "Intro / Outro vidéo", price: "300" },
-      { id: "m_o2", label: "Vidéo motion complète (jusqu'à 60s)", price: "800" },
-      { id: "m_o3", label: "Habillage graphique complet", price: "600" },
-      { id: "m_o4", label: "Export MP4 4K", price: "100" },
-      { id: "m_o5", label: "Ajout musique / son", price: "120" },
-      { id: "m_o6", label: "Sous-titres animés", price: "100" },
-      { id: "m_o7", label: "Fichiers sources After Effects", price: "200" },
-      { id: "m_o8", label: "Révision supplémentaire", price: "100" },
-      { id: "m_express", label: "Express — livraison 5 jours", price: "30", isPercent: true },
-      { id: "m_urgent", label: "Urgent — livraison 48h", price: "60", isPercent: true },
-    ],
-  },
-  // ── SITE WEB ──
-  {
-    id: "default_website",
-    name: "Site web",
-    category: "Site web",
-    basePrice: "600",
-    description: "Sites vitrines, e-commerce, portfolio et développement sur-mesure",
-    options: [
-      { id: "w_o1", label: "E-commerce (paiement en ligne, catalogue)", price: "600" },
-      { id: "w_o2", label: "Portfolio (galerie projets filtrée)", price: "0" },
-      { id: "w_o3", label: "Développement sur-mesure", price: "300" },
-      { id: "w_o4", label: "Blog intégré", price: "150" },
-      { id: "w_o5", label: "Prise de RDV en ligne", price: "200" },
-      { id: "w_o6", label: "Multilingue (1 langue supplémentaire)", price: "250" },
-      { id: "w_o7", label: "Référencement SEO approfondi", price: "300" },
-      { id: "w_o8", label: "Maintenance mensuelle", price: "80" },
-      { id: "w_express", label: "Express — livraison 2 semaines", price: "30", isPercent: true },
-      { id: "w_urgent", label: "Urgent — livraison 1 semaine", price: "60", isPercent: true },
-    ],
-  },
-];
-
 // ─── Couleurs par catégorie ───────────────────────────────────────────────────
 
 const DEFAULT_CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
@@ -119,23 +54,17 @@ export default function ServicesPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
-  // Chargement — si vide : injecter le catalogue par défaut
   useEffect(() => {
-    const saved = localStorage.getItem("clari_services");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.length > 0) {
-        setServices(parsed);
-        // Récupérer les catégories custom déjà utilisées dans les services sauvegardés
-        const usedCustom = [...new Set(parsed.map((s: Service) => s.category))]
-          .filter((c) => !DEFAULT_CATEGORIES.includes(c as string)) as string[];
-        setCustomCategories(usedCustom);
-        return;
-      }
-    }
-    // Premier lancement : charger le catalogue
-    setServices(DEFAULT_SERVICES);
-    localStorage.setItem("clari_services", JSON.stringify(DEFAULT_SERVICES));
+    fetch("/api/services")
+      .then(r => r.json())
+      .then((parsed: Service[]) => {
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setServices(parsed);
+          const usedCustom = [...new Set(parsed.map((s: Service) => s.category))]
+            .filter((c) => !DEFAULT_CATEGORIES.includes(c as string)) as string[];
+          setCustomCategories(usedCustom);
+        }
+      });
   }, []);
 
   // ─── Formulaire modal ───────────────────────────────────────────────────────
@@ -189,34 +118,42 @@ export default function ServicesPage() {
     setOptions(options.map((o) => (o.id === id ? { ...o, [field]: value } : o)));
   }
 
-  function saveService() {
+  async function saveService() {
     if (!name || !basePrice) return;
     const filteredOptions = options.filter((o) => o.label && o.price);
-    let updated: Service[];
+
     if (editingId) {
-      updated = services.map((s) =>
-        s.id === editingId ? { ...s, name, category, basePrice, description, options: filteredOptions } : s
-      );
+      const body = { name, category, basePrice, description, options: filteredOptions };
+      const res = await fetch(`/api/services/${editingId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (res.ok) {
+        const updated = await res.json();
+        setServices(prev => prev.map(s => s.id === editingId ? updated : s));
+      }
     } else {
-      updated = [...services, { id: Date.now().toString(), name, category, basePrice, description, options: filteredOptions }];
+      const body = { id: Date.now().toString(), name, category, basePrice, description, options: filteredOptions };
+      const res = await fetch("/api/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (res.ok) {
+        const created = await res.json();
+        setServices(prev => [...prev, created]);
+      }
     }
-    setServices(updated);
-    localStorage.setItem("clari_services", JSON.stringify(updated));
     closeModal();
   }
 
   function closeModal() { setShowModal(false); setEditingId(null); }
 
-  function deleteService(id: string) {
-    const updated = services.filter((s) => s.id !== id);
-    setServices(updated);
-    localStorage.setItem("clari_services", JSON.stringify(updated));
+  async function deleteService(id: string) {
+    setServices(prev => prev.filter(s => s.id !== id));
+    await fetch(`/api/services/${id}`, { method: "DELETE" });
   }
 
-  function resetToDefault() {
+  async function resetToDefault() {
     if (!confirm("Remettre le catalogue par défaut ? Tes modifications seront perdues.")) return;
-    setServices(DEFAULT_SERVICES);
-    localStorage.setItem("clari_services", JSON.stringify(DEFAULT_SERVICES));
+    const res = await fetch("/api/services/reset", { method: "POST" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) setServices(data);
+    }
   }
 
   // ─── Styles ─────────────────────────────────────────────────────────────────

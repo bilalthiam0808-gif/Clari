@@ -175,10 +175,10 @@ export default function BriefPage() {
   const [clientNote, setClientNote] = useState("");
   const [clientSource, setClientSource] = useState("");
 
-  // Chargement services
   useEffect(() => {
-    const saved = localStorage.getItem("clari_services");
-    if (saved) setAllServices(JSON.parse(saved));
+    fetch("/api/brief")
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setAllServices(data); });
   }, []);
 
   // Reset options & style quand le service change
@@ -240,7 +240,7 @@ export default function BriefPage() {
 
   // ─── Submit ────────────────────────────────────────────────────────────────
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!clientName || !clientEmail || !selectedService) return;
 
     const slug = generateSlug(clientName);
@@ -263,9 +263,11 @@ export default function BriefPage() {
       },
     };
 
-    const saved = localStorage.getItem("clari_projects");
-    const projects = saved ? JSON.parse(saved) : [];
-    localStorage.setItem("clari_projects", JSON.stringify([newProject, ...projects]));
+    await fetch("/api/brief", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newProject),
+    });
     setSubmitted(true);
   }
 

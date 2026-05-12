@@ -24,7 +24,14 @@ function verifyToken(cookie: string | undefined): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/auth")) {
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/b/") ||
+    pathname.startsWith("/brief") ||
+    pathname.startsWith("/api/b/") ||
+    pathname.startsWith("/api/brief")
+  ) {
     return NextResponse.next();
   }
 

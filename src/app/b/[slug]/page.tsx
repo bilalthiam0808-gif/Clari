@@ -127,27 +127,18 @@ export default function ClientForm() {
   // ─── Chargement ───────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const savedProjects = localStorage.getItem("clari_projects");
-    const savedServices = localStorage.getItem("clari_services");
-
-    if (!savedProjects) { setNotFound(true); return; }
-
-    const projects: Project[] = JSON.parse(savedProjects);
-    const foundProject = projects.find((p) => p.slug === slug);
-    if (!foundProject) { setNotFound(true); return; }
-
-    setProject(foundProject);
-    setClientName(foundProject.clientName);
-    setClientEmail(foundProject.clientEmail);
-
-    if (savedServices) {
-      const services: Service[] = JSON.parse(savedServices);
-      setAllServices(services);
-
-      // Pré-sélectionner le service lié au projet
-      const linked = services.find((s) => s.id === foundProject.serviceId);
-      if (linked) setSelectedService(linked);
-    }
+    fetch(`/api/b/${slug}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(({ project: p, service: svc }: { project: Project; service: Service | null }) => {
+        setProject(p);
+        setClientName(p.clientName);
+        setClientEmail(p.clientEmail);
+        if (svc) {
+          setAllServices([svc]);
+          setSelectedService(svc);
+        }
+      })
+      .catch(() => setNotFound(true));
   }, [slug]);
 
   // ─── Calcul du total ───────────────────────────────────────────────────────
@@ -201,29 +192,23 @@ export default function ClientForm() {
 
   // ─── Submit ────────────────────────────────────────────────────────────────
 
-  function handleSubmit() {
-    const savedProjects = localStorage.getItem("clari_projects");
-    if (savedProjects && project) {
-      const projects = JSON.parse(savedProjects);
-      const updated = projects.map((p: Project & { status: string }) =>
-        p.id === project.id
-          ? {
-              ...p,
-              status: "Brief reçu",
-              briefData: {
-                selectedService: selectedService?.name,
-                serviceCategory: selectedService?.category,
-                totalEstime: getTotal(),
-                brandName, sector, brandDesc, target, hasIdentity,
-                styleAnswers,
-                selectedOptions,
-                clientPhone, clientCity, clientNote, clientSource,
-              },
-            }
-          : p
-      );
-      localStorage.setItem("clari_projects", JSON.stringify(updated));
-    }
+  async function handleSubmit() {
+    if (!project) return;
+    await fetch(`/api/b/${slug}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        brief_data: {
+          selectedService: selectedService?.name,
+          serviceCategory: selectedService?.category,
+          totalEstime: getTotal(),
+          brandName, sector, brandDesc, target, hasIdentity,
+          styleAnswers,
+          selectedOptions,
+          clientPhone, clientCity, clientNote, clientSource,
+        },
+      }),
+    });
     setSubmitted(true);
   }
 

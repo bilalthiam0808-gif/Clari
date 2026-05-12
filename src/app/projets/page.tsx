@@ -53,13 +53,14 @@ export default function ProjetsPage() {
   const [clientEmail, setClientEmail] = useState("");
   const [serviceId, setServiceId] = useState("");
 
-  // Chargement depuis localStorage
   useEffect(() => {
-    const savedProjects = localStorage.getItem("clari_projects");
-    if (savedProjects) setProjects(JSON.parse(savedProjects));
-
-    const savedServices = localStorage.getItem("clari_services");
-    if (savedServices) setServices(JSON.parse(savedServices));
+    Promise.all([
+      fetch("/api/projects").then(r => r.json()),
+      fetch("/api/services").then(r => r.json()),
+    ]).then(([p, s]) => {
+      if (Array.isArray(p)) setProjects(p);
+      if (Array.isArray(s)) setServices(s);
+    });
   }, []);
 
 
@@ -76,11 +77,11 @@ export default function ProjetsPage() {
     setNewProjectSlug(null);
   }
 
-  function createProject() {
+  async function createProject() {
     if (!clientName || !clientEmail || !serviceId) return;
     const service = services.find((s) => s.id === serviceId);
     const slug = generateSlug(clientName);
-    const newProject: Project = {
+    const newProject = {
       id: Date.now().toString(),
       clientName,
       clientEmail,
@@ -90,10 +91,12 @@ export default function ProjetsPage() {
       slug,
       createdAt: new Date().toLocaleDateString("fr-FR"),
     };
-    const updated = [newProject, ...projects];
-    setProjects(updated);
-    localStorage.setItem("clari_projects", JSON.stringify(updated));
-    setNewProjectSlug(slug);
+    const res = await fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newProject) });
+    if (res.ok) {
+      const created = await res.json();
+      setProjects(prev => [created, ...prev]);
+      setNewProjectSlug(slug);
+    }
   }
 
   function copyLink(slug: string, id: string) {
@@ -103,10 +106,9 @@ export default function ProjetsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   }
 
-  function deleteProject(id: string) {
-    const updated = projects.filter((p) => p.id !== id);
-    setProjects(updated);
-    localStorage.setItem("clari_projects", JSON.stringify(updated));
+  async function deleteProject(id: string) {
+    setProjects(prev => prev.filter(p => p.id !== id));
+    await fetch(`/api/projects/${id}`, { method: "DELETE" });
   }
 
   const inputStyle = {

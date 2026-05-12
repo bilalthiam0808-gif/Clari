@@ -108,31 +108,23 @@ export default function ProjetDetailPage() {
   const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
 
   useEffect(() => {
-    const savedProjects = localStorage.getItem("clari_projects");
-    const savedServices = localStorage.getItem("clari_services");
-    if (!savedProjects) { setNotFound(true); return; }
-
-    const projects: Project[] = JSON.parse(savedProjects);
-    const found = projects.find(p => p.id === id);
-    if (!found) { setNotFound(true); return; }
-    setProject(found);
-
-    if (savedServices) {
-      const services: Service[] = JSON.parse(savedServices);
-      const svc = services.find(s => s.id === found.serviceId);
-      if (svc) setService(svc);
-    }
+    fetch(`/api/projects/${id}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(({ project, service: svc }) => {
+        setProject(project);
+        if (svc) setService(svc);
+      })
+      .catch(() => setNotFound(true));
   }, [id]);
 
-  function updateStatus(newStatus: Project["status"]) {
-    const savedProjects = localStorage.getItem("clari_projects");
-    if (!savedProjects || !project) return;
-    const projects = JSON.parse(savedProjects);
-    const updated = projects.map((p: Project) =>
-      p.id === project.id ? { ...p, status: newStatus } : p
-    );
-    localStorage.setItem("clari_projects", JSON.stringify(updated));
+  async function updateStatus(newStatus: Project["status"]) {
+    if (!project) return;
     setProject(prev => prev ? { ...prev, status: newStatus } : prev);
+    await fetch(`/api/projects/${project.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
   }
 
   function copyLink() {
