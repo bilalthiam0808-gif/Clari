@@ -183,7 +183,7 @@ export default function ServicesPage() {
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg)" }}>
       <Sidebar />
 
-      <main style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
+      <main className="admin-main" style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>

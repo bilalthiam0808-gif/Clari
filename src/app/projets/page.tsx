@@ -137,7 +137,7 @@ export default function ProjetsPage() {
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg)" }}>
       <Sidebar />
 
-      <main style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
+      <main className="admin-main" style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
@@ -212,7 +212,7 @@ export default function ProjetsPage() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "24px" }}>
+        <div className="stats-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "24px" }}>
           {[
             { label: "Total projets", value: projects.length },
             { label: "En attente", value: projects.filter((p) => p.status === "En attente").length },
@@ -271,7 +271,7 @@ export default function ProjetsPage() {
             </button>
           </div>
         ) : (
-          <div style={{
+          <div className="table-scroll" style={{
             background: "var(--surface)",
             border: "0.5px solid var(--border)",
             borderRadius: "12px",
