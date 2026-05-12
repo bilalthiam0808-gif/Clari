@@ -1,0 +1,539 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { generateDevisPDF } from "@/lib/generateDevis";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type BriefData = {
+  selectedService?: string;
+  serviceCategory?: string;
+  totalEstime?: number;
+  brandName?: string;
+  sector?: string;
+  brandDesc?: string;
+  target?: string;
+  hasIdentity?: string;
+  styleAnswers?: Record<string, string[]>;
+  selectedOptions?: string[];
+  clientPhone?: string;
+  clientCity?: string;
+  clientNote?: string;
+  clientSource?: string;
+};
+
+type Project = {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  serviceId: string;
+  serviceName: string;
+  status: "En attente" | "Brief reçu" | "Devis envoyé";
+  slug: string;
+  createdAt: string;
+  briefData?: BriefData;
+  source?: string;
+};
+
+type ServiceOption = {
+  id: string;
+  label: string;
+  price: string;
+  isPercent?: boolean;
+};
+
+type Service = {
+  id: string;
+  name: string;
+  category: string;
+  basePrice: string;
+  options: ServiceOption[];
+};
+
+// ─── Questions de style par catégorie ────────────────────────────────────────
+
+const STYLE_QUESTIONS: Record<string, { question: string; type: string; choices: string[] }[]> = {
+  "Graphisme": [
+    { question: "Quel type de logo souhaitez-vous ?", type: "single", choices: [] },
+    { question: "Quel univers visuel vous correspond ?", type: "multi", choices: [] },
+    { question: "Quelle direction typographique ?", type: "single", choices: [] },
+    { question: "Quelle palette de couleurs vous attire ?", type: "multi", choices: [] },
+  ],
+  "Motion Design": [
+    { question: "Quel style d'animation ?", type: "single", choices: [] },
+    { question: "Quelle ambiance sonore ?", type: "single", choices: [] },
+    { question: "Quelle durée approximative ?", type: "single", choices: [] },
+    { question: "Quel univers visuel vous correspond ?", type: "multi", choices: [] },
+  ],
+  "Site web": [
+    { question: "Combien de pages estimez-vous avoir besoin ?", type: "single", choices: [] },
+    { question: "Quel univers visuel vous correspond ?", type: "single", choices: [] },
+    { question: "Quelle plateforme préférez-vous ?", type: "single", choices: [] },
+    { question: "Avez-vous besoin d'une boutique en ligne ?", type: "single", choices: [] },
+  ],
+};
+
+// ─── Couleurs ─────────────────────────────────────────────────────────────────
+
+const statusColors: Record<string, { bg: string; color: string }> = {
+  "En attente":   { bg: "#1A1200", color: "#FAC775" },
+  "Brief reçu":   { bg: "#0A1A12", color: "#5DCAA5" },
+  "Devis envoyé": { bg: "#1A1A2E", color: "#CECBF6" },
+};
+
+const categoryColors: Record<string, { bg: string; color: string }> = {
+  "Graphisme":     { bg: "#1A1A2E", color: "#CECBF6" },
+  "Motion Design": { bg: "#1A0D2E", color: "#C4B8F0" },
+  "Site web":      { bg: "#0A1A12", color: "#9FE1CB" },
+};
+
+function getCategoryColor(cat: string) {
+  return categoryColors[cat] || { bg: "#1A1A1A", color: "#888" };
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function ProjetDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+
+  const [project, setProject] = useState<Project | null>(null);
+  const [service, setService] = useState<Service | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
+
+  useEffect(() => {
+    const savedProjects = localStorage.getItem("clari_projects");
+    const savedServices = localStorage.getItem("clari_services");
+    if (!savedProjects) { setNotFound(true); return; }
+
+    const projects: Project[] = JSON.parse(savedProjects);
+    const found = projects.find(p => p.id === id);
+    if (!found) { setNotFound(true); return; }
+    setProject(found);
+
+    if (savedServices) {
+      const services: Service[] = JSON.parse(savedServices);
+      const svc = services.find(s => s.id === found.serviceId);
+      if (svc) setService(svc);
+    }
+  }, [id]);
+
+  function updateStatus(newStatus: Project["status"]) {
+    const savedProjects = localStorage.getItem("clari_projects");
+    if (!savedProjects || !project) return;
+    const projects = JSON.parse(savedProjects);
+    const updated = projects.map((p: Project) =>
+      p.id === project.id ? { ...p, status: newStatus } : p
+    );
+    localStorage.setItem("clari_projects", JSON.stringify(updated));
+    setProject(prev => prev ? { ...prev, status: newStatus } : prev);
+  }
+
+  function copyLink() {
+    if (project) {
+      navigator.clipboard.writeText(`${window.location.origin}/b/${project.slug}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  async function handleSendDevis() {
+    if (!project || !project.briefData) return;
+    setSending(true);
+    setSendStatus("idle");
+
+    const brief = project.briefData;
+    const resolvedOpts = service && brief.selectedOptions
+      ? service.options.filter(o => brief.selectedOptions?.includes(o.id))
+      : [];
+
+    const pdfBase64 = generateDevisPDF({
+      clientName: project.clientName,
+      clientEmail: project.clientEmail,
+      clientPhone: brief.clientPhone,
+      clientCity: brief.clientCity,
+      serviceName: brief.selectedService || project.serviceName,
+      serviceCategory: brief.serviceCategory,
+      basePrice: service ? parseFloat(service.basePrice) : undefined,
+      selectedOptions: resolvedOpts,
+      total: brief.totalEstime ?? 0,
+      brandName: brief.brandName,
+      sector: brief.sector,
+      target: brief.target,
+      brandDesc: brief.brandDesc,
+      clientNote: brief.clientNote,
+      projectId: project.id,
+      createdAt: project.createdAt,
+    });
+
+    try {
+      const res = await fetch("/api/send-devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientEmail: project.clientEmail,
+          clientName: project.clientName,
+          serviceName: brief.selectedService || project.serviceName,
+          total: brief.totalEstime ?? 0,
+          pdfBase64,
+          projectId: project.id,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Erreur envoi email:", err);
+        setSendStatus("error");
+      } else {
+        setSendStatus("success");
+        updateStatus("Devis envoyé");
+      }
+    } catch {
+      setSendStatus("error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (notFound) return (
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center" }}>
+        <p style={{ color: "var(--text2)", marginBottom: "16px" }}>Projet introuvable.</p>
+        <Link href="/projets" style={{ color: "var(--accent)", fontSize: "13px" }}>← Retour aux projets</Link>
+      </div>
+    </div>
+  );
+
+  if (!project) return (
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "24px", height: "24px", border: "2px solid #2A2A2A", borderTopColor: "#7F77DD", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
+  const brief = project.briefData;
+  const hasBrief = !!brief;
+  const status = statusColors[project.status];
+  const catColor = getCategoryColor(brief?.serviceCategory || "");
+  const styleQuestions = brief?.serviceCategory ? (STYLE_QUESTIONS[brief.serviceCategory] || []) : [];
+
+  // Résoudre les options sélectionnées
+  const resolvedOptions = service && brief?.selectedOptions
+    ? service.options.filter(o => brief.selectedOptions?.includes(o.id))
+    : [];
+
+  const sectionStyle: React.CSSProperties = {
+    background: "var(--surface)",
+    border: "0.5px solid var(--border)",
+    borderRadius: "12px",
+    padding: "20px 24px",
+    marginBottom: "12px",
+  };
+
+  const sectionTitle: React.CSSProperties = {
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "var(--text3)",
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    marginBottom: "16px",
+  };
+
+  const fieldLabel: React.CSSProperties = {
+    fontSize: "11px",
+    color: "var(--text3)",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    marginBottom: "4px",
+    fontWeight: 500,
+  };
+
+  const fieldValue: React.CSSProperties = {
+    fontSize: "13px",
+    color: "var(--text)",
+    lineHeight: 1.6,
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+
+      {/* Header sticky */}
+      <div style={{ position: "sticky", top: 0, background: "rgba(15,15,15,0.96)", backdropFilter: "blur(8px)", borderBottom: "0.5px solid var(--border)", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <button onClick={() => router.push("/projets")}
+            style={{ background: "none", border: "0.5px solid var(--border)", borderRadius: "8px", padding: "6px 12px", cursor: "pointer", color: "var(--text2)", fontSize: "12px", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Projets
+          </button>
+          <div>
+            <span style={{ fontSize: "15px", fontWeight: 600, color: "var(--text)" }}>{project.clientName}</span>
+            <span style={{ fontSize: "13px", color: "var(--text3)", marginLeft: "10px" }}>{project.serviceName}</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "11px", fontWeight: 500, padding: "4px 10px", borderRadius: "6px", background: status.bg, color: status.color }}>{project.status}</span>
+          <button onClick={copyLink}
+            style={{ background: copied ? "rgba(29,158,117,0.1)" : "var(--accent-bg)", color: copied ? "var(--success)" : "var(--accent-light)", border: `0.5px solid ${copied ? "rgba(29,158,117,0.3)" : "rgba(127,119,221,0.3)"}`, borderRadius: "8px", padding: "6px 12px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px" }}>
+            {copied ? "✓ Copié" : "Copier le lien"}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: "780px", margin: "0 auto", padding: "32px 24px 60px" }}>
+
+        {/* Carte client */}
+        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "14px", padding: "24px", marginBottom: "16px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            {/* Avatar initiales */}
+            <div style={{ width: "46px", height: "46px", borderRadius: "12px", background: "var(--accent-bg)", border: "0.5px solid rgba(127,119,221,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--accent-light)" }}>
+                {project.clientName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <div style={{ fontSize: "18px", fontWeight: 600, color: "var(--text)", marginBottom: "4px" }}>{project.clientName}</div>
+              <div style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "2px" }}>{project.clientEmail}</div>
+              {brief?.clientPhone && <div style={{ fontSize: "12px", color: "var(--text3)" }}>{brief.clientPhone}</div>}
+              {brief?.clientCity && <div style={{ fontSize: "12px", color: "var(--text3)" }}>{brief.clientCity}</div>}
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "11px", color: "var(--text3)", marginBottom: "4px" }}>Créé le</div>
+            <div style={{ fontSize: "13px", color: "var(--text2)" }}>{project.createdAt}</div>
+            {project.source === "brief_generique" && (
+              <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "6px", padding: "2px 6px", borderRadius: "4px", background: "var(--surface2)", display: "inline-block" }}>Via lien générique</div>
+            )}
+          </div>
+        </div>
+
+        {/* Changer le statut */}
+        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "14px 20px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginRight: "4px" }}>Statut</span>
+          {(["En attente", "Brief reçu", "Devis envoyé"] as Project["status"][]).map(s => {
+            const col = statusColors[s];
+            const isActive = project.status === s;
+            return (
+              <button key={s} onClick={() => updateStatus(s)}
+                style={{ padding: "5px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", background: isActive ? col.bg : "transparent", color: isActive ? col.color : "var(--text3)", border: isActive ? `1px solid ${col.color}40` : "0.5px solid var(--border)", transition: "all 100ms" }}>
+                {s}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── BRIEF ── */}
+        {hasBrief ? (
+          <>
+            {/* Prestation + total */}
+            <div style={{ ...sectionStyle, display: "grid", gridTemplateColumns: "1fr auto", gap: "20px", alignItems: "center" }}>
+              <div>
+                <div style={sectionTitle}>Prestation choisie</div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  {brief.serviceCategory && (
+                    <span style={{ fontSize: "10px", fontWeight: 500, padding: "2px 8px", borderRadius: "4px", background: catColor.bg, color: catColor.color }}>{brief.serviceCategory}</span>
+                  )}
+                  <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)" }}>{brief.selectedService || project.serviceName}</span>
+                </div>
+                {service && (
+                  <div style={{ fontSize: "12px", color: "var(--text3)", marginTop: "4px" }}>Prix de base : {parseFloat(service.basePrice).toLocaleString("fr-FR")} €</div>
+                )}
+              </div>
+              {brief.totalEstime !== undefined && (
+                <div style={{ background: "var(--surface2)", borderRadius: "10px", padding: "12px 18px", textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Total estimé</div>
+                  <div style={{ fontSize: "24px", fontWeight: 700, color: "var(--accent)" }}>{brief.totalEstime.toLocaleString("fr-FR")} €</div>
+                </div>
+              )}
+            </div>
+
+            {/* Options sélectionnées */}
+            {resolvedOptions.length > 0 && (
+              <div style={sectionStyle}>
+                <div style={sectionTitle}>Options sélectionnées</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {resolvedOptions.map(opt => (
+                    <div key={opt.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "var(--surface2)", borderRadius: "8px", fontSize: "13px" }}>
+                      <span style={{ color: "var(--text2)" }}>{opt.label}</span>
+                      <span style={{ color: opt.isPercent ? "#EF9F27" : "var(--accent)", fontWeight: 500 }}>
+                        +{opt.isPercent ? `${opt.price}%` : `${parseFloat(opt.price).toLocaleString("fr-FR")} €`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bouton envoyer le devis */}
+            {project.status !== "Devis envoyé" && (
+              <div style={{ marginBottom: "12px" }}>
+                <button
+                  onClick={handleSendDevis}
+                  disabled={sending}
+                  style={{
+                    width: "100%",
+                    padding: "14px 24px",
+                    borderRadius: "12px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    fontFamily: "inherit",
+                    cursor: sending ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    background: sending ? "rgba(29,158,117,0.1)" : "linear-gradient(135deg, #1D9E75 0%, #15785A 100%)",
+                    color: sending ? "#1D9E75" : "#fff",
+                    border: sending ? "1px solid rgba(29,158,117,0.4)" : "none",
+                    boxShadow: sending ? "none" : "0 4px 16px rgba(29,158,117,0.25)",
+                    transition: "all 150ms",
+                    opacity: sending ? 0.7 : 1,
+                  }}
+                >
+                  {sending ? (
+                    <>
+                      <div style={{ width: "16px", height: "16px", border: "2px solid #1D9E75", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+                      Envoi en cours…
+                    </>
+                  ) : (
+                    <>
+                      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+                        <path d="M2 8.5L15 2l-4 6.5 4 6.5L2 8.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                      </svg>
+                      Accepter et envoyer le devis
+                    </>
+                  )}
+                </button>
+
+                {sendStatus === "success" && (
+                  <div style={{ marginTop: "8px", padding: "10px 14px", borderRadius: "8px", background: "rgba(29,158,117,0.1)", border: "0.5px solid rgba(29,158,117,0.4)", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#1D9E75" }}>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#1D9E75" strokeWidth="1.2"/><path d="M4.5 7.5l2 2 4-4" stroke="#1D9E75" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    Devis envoyé avec succès à {project.clientEmail}
+                  </div>
+                )}
+                {sendStatus === "error" && (
+                  <div style={{ marginTop: "8px", padding: "10px 14px", borderRadius: "8px", background: "rgba(226,75,74,0.1)", border: "0.5px solid rgba(226,75,74,0.4)", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#E24B4A" }}>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#E24B4A" strokeWidth="1.2"/><path d="M7.5 4.5v4M7.5 10.5v.5" stroke="#E24B4A" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                    Erreur lors de l&apos;envoi. Vérifiez votre clé API Resend dans <code style={{ fontSize: "11px", background: "rgba(226,75,74,0.1)", padding: "1px 5px", borderRadius: "4px" }}>.env.local</code>.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {project.status === "Devis envoyé" && (
+              <div style={{ marginBottom: "12px", padding: "12px 16px", borderRadius: "10px", background: "rgba(29,158,117,0.08)", border: "0.5px solid rgba(29,158,117,0.3)", display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "#1D9E75" }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#1D9E75" strokeWidth="1.2"/><path d="M5 8l2 2 4-4" stroke="#1D9E75" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Devis déjà envoyé à {project.clientEmail}
+              </div>
+            )}
+
+            {/* Contexte de la marque */}
+            {(brief.brandName || brief.sector || brief.brandDesc || brief.target) && (
+              <div style={sectionStyle}>
+                <div style={sectionTitle}>Contexte de la marque</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  {brief.brandName && (
+                    <div>
+                      <div style={fieldLabel}>Nom / marque</div>
+                      <div style={fieldValue}>{brief.brandName}</div>
+                    </div>
+                  )}
+                  {brief.sector && (
+                    <div>
+                      <div style={fieldLabel}>Secteur</div>
+                      <div style={fieldValue}>{brief.sector}</div>
+                    </div>
+                  )}
+                  {brief.target && (
+                    <div>
+                      <div style={fieldLabel}>Cible principale</div>
+                      <div style={fieldValue}>{brief.target}</div>
+                    </div>
+                  )}
+                  {brief.hasIdentity && (
+                    <div>
+                      <div style={fieldLabel}>Identité visuelle existante</div>
+                      <div style={fieldValue}>{brief.hasIdentity}</div>
+                    </div>
+                  )}
+                  {brief.brandDesc && (
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <div style={fieldLabel}>Description</div>
+                      <div style={{ ...fieldValue, background: "var(--surface2)", borderRadius: "8px", padding: "12px 14px" }}>{brief.brandDesc}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Style visuel */}
+            {brief.styleAnswers && Object.keys(brief.styleAnswers).length > 0 && (
+              <div style={sectionStyle}>
+                <div style={sectionTitle}>Style visuel</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  {Object.entries(brief.styleAnswers).map(([qIndex, answers]) => {
+                    if (!answers || answers.length === 0) return null;
+                    const qData = styleQuestions[parseInt(qIndex)];
+                    return (
+                      <div key={qIndex}>
+                        <div style={fieldLabel}>{qData?.question || `Question ${parseInt(qIndex) + 1}`}</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {answers.map((a: string) => (
+                            <span key={a} style={{ fontSize: "12px", padding: "4px 10px", borderRadius: "6px", background: "var(--accent-bg)", color: "var(--accent-light)", border: "0.5px solid rgba(127,119,221,0.2)" }}>{a}</span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Note client */}
+            {brief.clientNote && (
+              <div style={sectionStyle}>
+                <div style={sectionTitle}>Note du client</div>
+                <div style={{ fontSize: "13px", color: "var(--text)", lineHeight: 1.7, background: "var(--surface2)", borderRadius: "8px", padding: "14px 16px" }}>
+                  {brief.clientNote}
+                </div>
+              </div>
+            )}
+
+            {/* Source */}
+            {brief.clientSource && (
+              <div style={{ ...sectionStyle, padding: "12px 20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={fieldLabel}>Comment nous a trouvés :</span>
+                  <span style={{ fontSize: "13px", color: "var(--text2)" }}>{brief.clientSource}</span>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* Pas encore de brief */
+          <div style={{ ...sectionStyle, textAlign: "center", padding: "48px 24px" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#1A1200", border: "0.5px solid rgba(250,199,117,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="8" stroke="#FAC775" strokeWidth="1.3"/>
+                <path d="M10 6v4M10 13v1" stroke="#FAC775" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <p style={{ fontSize: "14px", fontWeight: 500, color: "var(--text)", marginBottom: "6px" }}>Brief non reçu</p>
+            <p style={{ fontSize: "13px", color: "var(--text3)", marginBottom: "20px" }}>Le client n&apos;a pas encore rempli son formulaire.</p>
+            <button onClick={copyLink}
+              style={{ background: "var(--accent-bg)", color: "var(--accent-light)", border: "0.5px solid rgba(127,119,221,0.3)", borderRadius: "10px", padding: "9px 18px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+              Renvoyer le lien au client
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
