@@ -160,16 +160,18 @@ export default function Sidebar() {
 
         {/* Plan */}
         <div style={{ padding: "0 12px" }}>
-          <div style={{
-            background: "var(--accent-bg)",
-            border: "0.5px solid rgba(127,119,221,0.3)",
-            borderRadius: "8px",
-            padding: "10px 12px",
-          }}>
-            <div style={{ fontSize: "11px", color: "var(--accent-light)", fontWeight: 500, marginBottom: "2px" }}>
-              Plan Gratuit
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px" }}>
+            <div style={{
+              width: "30px", height: "30px", borderRadius: "8px",
+              background: "var(--accent-bg)", border: "0.5px solid rgba(127,119,221,0.3)",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent-light)" }}>BT</span>
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text3)" }}>1/3 projets ce mois</div>
+            <div>
+              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)" }}>Billale Thiam</div>
+              <div style={{ fontSize: "11px", color: "var(--text3)" }}>Admin</div>
+            </div>
           </div>
 
           {/* Logout */}
