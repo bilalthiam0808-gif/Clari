@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ const categoryColors: Record<Category, { bg: string; color: string }> = {
   "Site web":      { bg: "#0A1A12", color: "#9FE1CB" },
 };
 
-const categoryIcons: Record<Category, JSX.Element> = {
+const categoryIcons: Record<Category, React.ReactNode> = {
   "Graphisme": (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
       <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.2"/>
