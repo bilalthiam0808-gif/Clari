@@ -106,6 +106,7 @@ export default function ProjetDetailPage() {
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
+  const [previewing, setPreviewing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/projects/${id}`)
@@ -190,6 +191,44 @@ export default function ProjetDetailPage() {
       setSendStatus("error");
     } finally {
       setSending(false);
+    }
+  }
+
+  function previewDevis() {
+    if (!project?.briefData) return;
+    setPreviewing(true);
+    try {
+      const brief = project.briefData;
+      const resolvedOpts = service && brief.selectedOptions
+        ? service.options.filter(o => brief.selectedOptions?.includes(o.id))
+        : [];
+      const pdfBase64 = generateDevisPDF({
+        clientName: project.clientName,
+        clientEmail: project.clientEmail,
+        clientPhone: brief.clientPhone,
+        clientCity: brief.clientCity,
+        serviceName: brief.selectedService || project.serviceName,
+        serviceCategory: brief.serviceCategory,
+        basePrice: service ? parseFloat(service.basePrice) : undefined,
+        selectedOptions: resolvedOpts,
+        total: brief.totalEstime ?? 0,
+        brandName: brief.brandName,
+        sector: brief.sector,
+        target: brief.target,
+        brandDesc: brief.brandDesc,
+        clientNote: brief.clientNote,
+        projectId: project.id,
+        createdAt: project.createdAt,
+      });
+      const bytes = atob(pdfBase64);
+      const uint8 = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) uint8[i] = bytes.charCodeAt(i);
+      const blob = new Blob([uint8], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } finally {
+      setPreviewing(false);
     }
   }
 
@@ -362,6 +401,35 @@ export default function ProjetDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Prévisualisation + envoi */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+              <button
+                onClick={previewDevis}
+                disabled={previewing}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  borderRadius: "12px",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  fontFamily: "inherit",
+                  cursor: previewing ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                  background: "transparent",
+                  color: "var(--accent-light)",
+                  border: "0.5px solid rgba(127,119,221,0.4)",
+                  transition: "all 150ms",
+                  opacity: previewing ? 0.6 : 1,
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                  <path d="M1 7.5S3.5 2 7.5 2s6.5 5.5 6.5 5.5S12.5 13 7.5 13 1 7.5 1 7.5z" stroke="currentColor" strokeWidth="1.2"/>
+                  <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.2"/>
+                </svg>
+                {previewing ? "Génération…" : "Prévisualiser"}
+              </button>
+            </div>
 
             {/* Bouton envoyer le devis */}
             {project.status !== "Devis envoyé" && (

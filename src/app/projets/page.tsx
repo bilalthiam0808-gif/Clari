@@ -47,6 +47,8 @@ export default function ProjetsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedGeneric, setCopiedGeneric] = useState(false);
   const [newProjectSlug, setNewProjectSlug] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Formulaire
   const [clientName, setClientName] = useState("");
@@ -211,6 +213,50 @@ export default function ProjetsPage() {
           </button>
         </div>
 
+        {/* Recherche + filtres */}
+        {projects.length > 0 && (
+          <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text3)", pointerEvents: "none" }}>
+                <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+                <path d="M9.5 9.5l2.5 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un client ou service…"
+                style={{
+                  width: "100%",
+                  background: "var(--surface)",
+                  border: "0.5px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "9px 14px 9px 36px",
+                  fontSize: "13px",
+                  color: "var(--text)",
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {(["all", "En attente", "Brief reçu", "Devis envoyé"] as const).map(f => (
+                <button key={f} onClick={() => setStatusFilter(f)}
+                  style={{
+                    padding: "6px 14px", borderRadius: "8px", fontSize: "12px",
+                    fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+                    background: statusFilter === f ? "var(--accent-bg)" : "transparent",
+                    color: statusFilter === f ? "var(--accent-light)" : "var(--text3)",
+                    border: statusFilter === f ? "0.5px solid rgba(127,119,221,0.4)" : "0.5px solid var(--border)",
+                    transition: "all 100ms",
+                  }}>
+                  {f === "all" ? "Tous" : f}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="stats-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "24px" }}>
           {[
@@ -231,7 +277,15 @@ export default function ProjetsPage() {
         </div>
 
         {/* Liste des projets */}
-        {projects.length === 0 ? (
+        {(() => {
+          const filtered = projects.filter(p => {
+            const q = search.toLowerCase();
+            const matchSearch = !q || p.clientName.toLowerCase().includes(q) || p.serviceName.toLowerCase().includes(q) || p.clientEmail.toLowerCase().includes(q);
+            const matchStatus = statusFilter === "all" || p.status === statusFilter;
+            return matchSearch && matchStatus;
+          });
+
+          if (projects.length === 0) return (
           <div style={{
             background: "var(--surface)",
             border: "0.5px solid var(--border)",
@@ -270,7 +324,15 @@ export default function ProjetsPage() {
               Créer mon premier projet →
             </button>
           </div>
-        ) : (
+          );
+
+          if (filtered.length === 0) return (
+            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "32px 20px", textAlign: "center" }}>
+              <p style={{ fontSize: "13px", color: "var(--text2)" }}>Aucun projet ne correspond à cette recherche.</p>
+            </div>
+          );
+
+          return (
           <div className="table-scroll" style={{
             background: "var(--surface)",
             border: "0.5px solid var(--border)",
@@ -297,9 +359,9 @@ export default function ProjetsPage() {
             </div>
 
             {/* Lignes */}
-            {projects.map((project, i) => {
+            {filtered.map((project, i) => {
               const status = statusColors[project.status];
-              const isLast = i === projects.length - 1;
+              const isLast = i === filtered.length - 1;
               return (
                 <div
                   key={project.id}
@@ -390,7 +452,8 @@ export default function ProjetsPage() {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </main>
 
       {/* MODAL */}

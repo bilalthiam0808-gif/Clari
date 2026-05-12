@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/supabase-admin";
+import { sendBriefNotifications } from "@/lib/emails";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -52,6 +53,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Emails fire-and-forget (ne bloque pas la réponse)
+  sendBriefNotifications({
+    clientName: data.client_name,
+    clientEmail: data.client_email,
+    serviceName: data.service_name,
+    totalEstime: data.brief_data?.totalEstime,
+    projectId: data.id,
+  });
 
   return NextResponse.json(data);
 }

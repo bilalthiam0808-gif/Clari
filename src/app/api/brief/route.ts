@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/supabase-admin";
 import { DEFAULT_SERVICES } from "@/lib/defaultServices";
+import { sendBriefNotifications } from "@/lib/emails";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toClient(row: any) {
@@ -34,6 +35,15 @@ export async function POST(req: NextRequest) {
   };
   const { data, error } = await db.from("projects").insert(row).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Emails fire-and-forget
+  sendBriefNotifications({
+    clientName: body.clientName,
+    clientEmail: body.clientEmail,
+    serviceName: body.serviceName,
+    totalEstime: body.briefData?.totalEstime,
+    projectId: data.id,
+  });
 
   return NextResponse.json(data);
 }
