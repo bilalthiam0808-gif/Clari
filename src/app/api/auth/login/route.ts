@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     timingSafeEqual(inputBuf, expectedBuf);
 
   if (!isMatch) {
-    return NextResponse.json({ error: "Mot de passe incorrect" }, { status: 401 });
+    return NextResponse.json({ error: "Accès refusé" }, { status: 401 });
   }
 
   const token = expectedToken();
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   response.cookies.set("clari_auth", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: 60 * 60 * 24 * 30, // 30 jours
     path: "/",
   });

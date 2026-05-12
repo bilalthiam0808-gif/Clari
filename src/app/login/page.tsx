@@ -26,7 +26,7 @@ export default function LoginPage() {
         router.refresh();
       } else {
         const data = await res.json();
-        setError(data.error || "Accès refusé");
+        setError("Mot de passe incorrect.");
       }
     } catch {
       setError("Erreur de connexion. Réessayez.");
