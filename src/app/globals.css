@@ -100,4 +100,67 @@ body {
   .hide-mobile {
     display: none !important;
   }
+
+  /* ── Dashboard header wrap ── */
+  .dashboard-header { flex-wrap: wrap !important; gap: 12px !important; align-items: flex-start !important; }
+
+  /* ── Dashboard — ligne projet récent ── */
+  .recent-row-right { flex-wrap: wrap !important; gap: 4px 8px !important; justify-content: flex-end !important; }
+  .recent-row-date { display: none !important; }
+
+  /* ── Projets — table → cartes ── */
+  .projects-table-head { display: none !important; }
+  .projects-table-row {
+    grid-template-columns: 1fr auto 36px !important;
+    grid-template-areas: "client status del" "service date del" "link link link" !important;
+    gap: 5px 8px !important;
+    padding: 12px 16px !important;
+  }
+  .proj-cell-client { grid-area: client; }
+  .proj-cell-service { grid-area: service; }
+  .proj-cell-status { grid-area: status; align-self: center; }
+  .proj-cell-date { grid-area: date; display: flex !important; justify-content: flex-end; align-items: center; }
+  .proj-cell-link {
+    grid-area: link;
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 4px;
+    padding: 8px 10px !important;
+  }
+  .proj-cell-del { grid-area: del; align-self: start; }
+
+  /* ── Lien générique ── */
+  .brief-banner { flex-wrap: wrap !important; gap: 10px !important; }
+  .brief-banner > button { width: 100% !important; justify-content: center !important; }
+
+  /* ── Services header ── */
+  .services-header { flex-wrap: wrap !important; gap: 10px !important; align-items: flex-start !important; }
+  .services-header-btns { flex-wrap: wrap !important; gap: 6px !important; }
+
+  /* ── Projet detail — header sticky ── */
+  .detail-header { padding: 10px 16px !important; flex-wrap: wrap !important; gap: 8px !important; }
+  .detail-header-left { flex: 1 !important; min-width: 0 !important; overflow: hidden !important; }
+  .detail-service-name { display: none !important; }
+  .detail-header-right { gap: 6px !important; flex-shrink: 0 !important; }
+
+  /* ── Projet detail — sélecteur statut ── */
+  .status-selector { flex-wrap: wrap !important; gap: 6px !important; padding: 12px 16px !important; }
+
+  /* ── Projet detail — grille contexte marque ── */
+  .brief-context-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Briefs — header & filtres ── */
+  .briefs-header { flex-wrap: wrap !important; gap: 10px !important; align-items: flex-start !important; }
+  .briefs-filter { flex-wrap: wrap !important; gap: 6px !important; }
+
+  /* ── Modale → bottom sheet ── */
+  .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .modal-sheet {
+    border-radius: 20px 20px 0 0 !important;
+    padding: 20px 20px 44px !important;
+    max-height: 92vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-y: auto !important;
+  }
 }

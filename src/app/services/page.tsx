@@ -186,14 +186,14 @@ export default function ServicesPage() {
       <main className="admin-main" style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+        <div className="services-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)", marginBottom: "2px" }}>Mes services</h1>
             <p style={{ fontSize: "13px", color: "var(--text2)" }}>
               {services.length} prestation{services.length > 1 ? "s" : ""} configurée{services.length > 1 ? "s" : ""} — modifiable à tout moment.
             </p>
           </div>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="services-header-btns" style={{ display: "flex", gap: "8px" }}>
             <button
               onClick={resetToDefault}
               style={{
@@ -331,9 +331,9 @@ export default function ServicesPage() {
 
       {/* ── MODAL ──────────────────────────────────────────────────────────────── */}
       {showModal && (
-        <div onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "20px" }}>
-          <div style={{ background: "var(--surface)", border: "0.5px solid var(--border-hover)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="modal-sheet" style={{ background: "var(--surface)", border: "0.5px solid var(--border-hover)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "90vh", overflowY: "auto" }}>
 
             {/* Header modal */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>

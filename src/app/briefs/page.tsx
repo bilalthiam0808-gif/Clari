@@ -64,7 +64,7 @@ export default function BriefsPage() {
       <main className="admin-main" style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px" }}>
+        <div className="briefs-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)", marginBottom: "2px" }}>Briefs reçus</h1>
             <p style={{ fontSize: "13px", color: "var(--text2)" }}>
@@ -73,7 +73,7 @@ export default function BriefsPage() {
           </div>
 
           {briefs.length > 0 && (
-            <div style={{ display: "flex", gap: "6px" }}>
+            <div className="briefs-filter" style={{ display: "flex", gap: "6px" }}>
               {([
                 { key: "all", label: "Tous" },
                 { key: "brief", label: "Brief reçu" },
@@ -107,7 +107,7 @@ export default function BriefsPage() {
             <p style={{ fontSize: "13px", color: "var(--text2)" }}>Aucun brief dans ce filtre.</p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: "12px" }}>
             {filtered.map(project => {
               const brief = project.briefData!;
               const col = getCategoryColor(brief.serviceCategory);

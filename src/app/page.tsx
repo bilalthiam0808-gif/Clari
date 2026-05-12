@@ -55,7 +55,7 @@ export default function Dashboard() {
       <main className="admin-main" style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+        <div className="dashboard-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)", marginBottom: "2px" }}>Dashboard</h1>
             <p style={{ fontSize: "13px", color: "var(--text2)" }}>
@@ -137,12 +137,12 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div className="recent-row-right" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                       {p.briefData?.totalEstime !== undefined && (
                         <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--accent)" }}>{p.briefData.totalEstime.toLocaleString("fr-FR")} €</span>
                       )}
                       <span style={{ fontSize: "10px", fontWeight: 500, padding: "3px 8px", borderRadius: "5px", background: status.bg, color: status.color, whiteSpace: "nowrap" }}>{p.status}</span>
-                      <span style={{ fontSize: "11px", color: "var(--text3)", whiteSpace: "nowrap" }}>{p.createdAt}</span>
+                      <span className="recent-row-date" style={{ fontSize: "11px", color: "var(--text3)", whiteSpace: "nowrap" }}>{p.createdAt}</span>
                     </div>
                   </div>
                 );

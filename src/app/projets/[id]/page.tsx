@@ -256,24 +256,24 @@ export default function ProjetDetailPage() {
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
 
       {/* Header sticky */}
-      <div style={{ position: "sticky", top: 0, background: "rgba(15,15,15,0.96)", backdropFilter: "blur(8px)", borderBottom: "0.5px solid var(--border)", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div className="detail-header" style={{ position: "sticky", top: 0, background: "rgba(15,15,15,0.96)", backdropFilter: "blur(8px)", borderBottom: "0.5px solid var(--border)", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+        <div className="detail-header-left" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button onClick={() => router.push("/projets")}
-            style={{ background: "none", border: "0.5px solid var(--border)", borderRadius: "8px", padding: "6px 12px", cursor: "pointer", color: "var(--text2)", fontSize: "12px", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>
+            style={{ background: "none", border: "0.5px solid var(--border)", borderRadius: "8px", padding: "6px 12px", cursor: "pointer", color: "var(--text2)", fontSize: "12px", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Projets
           </button>
-          <div>
-            <span style={{ fontSize: "15px", fontWeight: 600, color: "var(--text)" }}>{project.clientName}</span>
-            <span style={{ fontSize: "13px", color: "var(--text3)", marginLeft: "10px" }}>{project.serviceName}</span>
+          <div style={{ overflow: "hidden" }}>
+            <span style={{ fontSize: "15px", fontWeight: 600, color: "var(--text)", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.clientName}</span>
+            <span className="detail-service-name" style={{ fontSize: "13px", color: "var(--text3)" }}>{project.serviceName}</span>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "11px", fontWeight: 500, padding: "4px 10px", borderRadius: "6px", background: status.bg, color: status.color }}>{project.status}</span>
+        <div className="detail-header-right" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "11px", fontWeight: 500, padding: "4px 10px", borderRadius: "6px", background: status.bg, color: status.color, whiteSpace: "nowrap" }}>{project.status}</span>
           <button onClick={copyLink}
-            style={{ background: copied ? "rgba(29,158,117,0.1)" : "var(--accent-bg)", color: copied ? "var(--success)" : "var(--accent-light)", border: `0.5px solid ${copied ? "rgba(29,158,117,0.3)" : "rgba(127,119,221,0.3)"}`, borderRadius: "8px", padding: "6px 12px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px" }}>
+            style={{ background: copied ? "rgba(29,158,117,0.1)" : "var(--accent-bg)", color: copied ? "var(--success)" : "var(--accent-light)", border: `0.5px solid ${copied ? "rgba(29,158,117,0.3)" : "rgba(127,119,221,0.3)"}`, borderRadius: "8px", padding: "6px 12px", fontSize: "12px", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}>
             {copied ? "✓ Copié" : "Copier le lien"}
           </button>
         </div>
@@ -307,7 +307,7 @@ export default function ProjetDetailPage() {
         </div>
 
         {/* Changer le statut */}
-        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "14px 20px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="status-selector" style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "14px 20px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
           <span style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginRight: "4px" }}>Statut</span>
           {(["En attente", "Brief reçu", "Devis envoyé"] as Project["status"][]).map(s => {
             const col = statusColors[s];
@@ -430,7 +430,7 @@ export default function ProjetDetailPage() {
             {(brief.brandName || brief.sector || brief.brandDesc || brief.target) && (
               <div style={sectionStyle}>
                 <div style={sectionTitle}>Contexte de la marque</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div className="brief-context-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                   {brief.brandName && (
                     <div>
                       <div style={fieldLabel}>Nom / marque</div>

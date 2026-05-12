@@ -140,7 +140,7 @@ export default function ProjetsPage() {
       <main className="admin-main" style={{ flex: 1, overflow: "auto", padding: "28px 32px" }}>
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+        <div className="dashboard-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)", marginBottom: "2px" }}>Projets</h1>
             <p style={{ fontSize: "13px", color: "var(--text2)" }}>
@@ -166,7 +166,7 @@ export default function ProjetsPage() {
         </div>
 
         {/* Lien générique */}
-        <div style={{ background: "var(--accent-bg)", border: "0.5px solid rgba(127,119,221,0.3)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
+        <div className="brief-banner" style={{ background: "var(--accent-bg)", border: "0.5px solid rgba(127,119,221,0.3)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
           <div>
             <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--accent-light)", marginBottom: "3px" }}>
               🔗 Lien générique
@@ -278,7 +278,7 @@ export default function ProjetsPage() {
             overflow: "hidden",
           }}>
             {/* En-tête tableau */}
-            <div style={{
+            <div className="projects-table-head" style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 120px 100px 160px 40px",
               padding: "10px 20px",
@@ -303,6 +303,7 @@ export default function ProjetsPage() {
               return (
                 <div
                   key={project.id}
+                  className="projects-table-row"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr 120px 100px 160px 40px",
@@ -317,16 +318,16 @@ export default function ProjetsPage() {
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   {/* Client */}
-                  <div>
+                  <div className="proj-cell-client">
                     <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)", marginBottom: "2px" }}>{project.clientName}</div>
                     <div style={{ fontSize: "11px", color: "var(--text3)" }}>{project.clientEmail}</div>
                   </div>
 
                   {/* Service */}
-                  <div style={{ fontSize: "12px", color: "var(--text2)" }}>{project.serviceName}</div>
+                  <div className="proj-cell-service" style={{ fontSize: "12px", color: "var(--text2)" }}>{project.serviceName}</div>
 
                   {/* Statut */}
-                  <div>
+                  <div className="proj-cell-status">
                     <span style={{
                       fontSize: "11px", fontWeight: 500,
                       padding: "3px 9px", borderRadius: "6px",
@@ -337,10 +338,11 @@ export default function ProjetsPage() {
                   </div>
 
                   {/* Date */}
-                  <div style={{ fontSize: "12px", color: "var(--text3)" }}>{project.createdAt}</div>
+                  <div className="proj-cell-date" style={{ fontSize: "12px", color: "var(--text3)" }}>{project.createdAt}</div>
 
                   {/* Lien */}
                   <button
+                    className="proj-cell-link"
                     onClick={(e) => { e.stopPropagation(); copyLink(project.slug, project.id); }}
                     style={{
                       background: copiedId === project.id ? "var(--success-bg)" : "var(--accent-bg)",
@@ -378,6 +380,7 @@ export default function ProjetsPage() {
 
                   {/* Supprimer */}
                   <button
+                    className="proj-cell-del"
                     onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}
                     style={{ background: "none", border: "none", color: "var(--text3)", cursor: "pointer", fontSize: "16px", padding: "4px", textAlign: "center" }}
                   >
@@ -393,6 +396,7 @@ export default function ProjetsPage() {
       {/* MODAL */}
       {showModal && (
         <div
+          className="modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
           style={{
             position: "fixed", inset: 0,
@@ -401,7 +405,7 @@ export default function ProjetsPage() {
             zIndex: 50, padding: "20px",
           }}
         >
-          <div style={{
+          <div className="modal-sheet" style={{
             background: "var(--surface)",
             border: "0.5px solid var(--border-hover)",
             borderRadius: "16px",
