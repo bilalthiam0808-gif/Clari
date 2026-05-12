@@ -4,10 +4,19 @@ import { createHash } from "crypto";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-function expectedToken(): string {
+function verifyToken(cookie: string | undefined): boolean {
+  if (!cookie) return false;
+  const parts = cookie.split(":");
+  if (parts.length !== 2) return false;
+  const [expiresStr, hash] = parts;
+  const expires = Number(expiresStr);
+  if (isNaN(expires) || Date.now() > expires) return false;
   const password = (process.env.CLARI_PASSWORD ?? "").trim();
   const secret = (process.env.CLARI_SESSION_SECRET ?? "").trim();
-  return createHash("sha256").update(password + secret).digest("hex");
+  const expected = createHash("sha256")
+    .update(`${password}:${secret}:${expires}`)
+    .digest("hex");
+  return hash === expected;
 }
 
 function escapeHtml(str: unknown): string {
@@ -25,7 +34,7 @@ const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 export async function POST(req: NextRequest) {
   // Auth check — must have valid session cookie
   const token = req.cookies.get("clari_auth")?.value;
-  if (token !== expectedToken()) {
+  if (!verifyToken(token)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 

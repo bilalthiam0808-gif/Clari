@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 
-function expectedToken(): string {
+function verifyToken(cookie: string | undefined): boolean {
+  if (!cookie) return false;
+
+  const parts = cookie.split(":");
+  if (parts.length !== 2) return false;
+
+  const [expiresStr, hash] = parts;
+  const expires = Number(expiresStr);
+
+  if (isNaN(expires) || Date.now() > expires) return false;
+
   const password = (process.env.CLARI_PASSWORD ?? "").trim();
   const secret = (process.env.CLARI_SESSION_SECRET ?? "").trim();
-  return createHash("sha256").update(password + secret).digest("hex");
+  const expected = createHash("sha256")
+    .update(`${password}:${secret}:${expires}`)
+    .digest("hex");
+
+  return hash === expected;
 }
 
 export function proxy(request: NextRequest) {
@@ -16,7 +30,7 @@ export function proxy(request: NextRequest) {
 
   const token = request.cookies.get("clari_auth")?.value;
 
-  if (token !== expectedToken()) {
+  if (!verifyToken(token)) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

@@ -8,8 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Clari — Briefs & devis pour freelances créatifs",
-  description: "Clari guide tes clients pour formuler un brief clair et génère automatiquement un devis PDF.",
+  title: "Clari",
+  description: "Accès privé",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
