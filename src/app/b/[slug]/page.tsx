@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useTheme } from "@/hooks/useTheme";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,6 +93,7 @@ const categoryIcons: Record<Category, React.ReactNode> = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ClientForm() {
+  const { theme, toggle } = useTheme("light", "clari_client_theme");
   const params = useParams();
   const slug = params.slug as string;
 
@@ -215,12 +218,12 @@ export default function ClientForm() {
   // ─── Styles communs ────────────────────────────────────────────────────────
 
   const inputStyle: React.CSSProperties = {
-    background: "#1A1A1A",
-    border: "0.5px solid #2A2A2A",
+    background: "var(--surface)",
+    border: "0.5px solid var(--border)",
     borderRadius: "8px",
     padding: "10px 14px",
     fontSize: "14px",
-    color: "#FFFFFF",
+    color: "var(--text)",
     width: "100%",
     outline: "none",
     fontFamily: "inherit",
@@ -228,7 +231,7 @@ export default function ClientForm() {
 
   const labelStyle: React.CSSProperties = {
     fontSize: "11px",
-    color: "#888888",
+    color: "var(--text2)",
     textTransform: "uppercase",
     letterSpacing: "0.06em",
     marginBottom: "6px",
@@ -238,7 +241,7 @@ export default function ClientForm() {
 
   const btnPrimary: React.CSSProperties = {
     flex: 1,
-    background: "#7F77DD",
+    background: "var(--accent)",
     color: "#FFFFFF",
     border: "none",
     borderRadius: "10px",
@@ -251,8 +254,8 @@ export default function ClientForm() {
 
   const btnSecondary: React.CSSProperties = {
     background: "transparent",
-    color: "#888888",
-    border: "0.5px solid #2A2A2A",
+    color: "var(--text2)",
+    border: "0.5px solid var(--border)",
     borderRadius: "10px",
     padding: "13px 20px",
     fontSize: "13px",
@@ -263,16 +266,16 @@ export default function ClientForm() {
   // ─── États de chargement ───────────────────────────────────────────────────
 
   if (notFound) return (
-    <div style={{ minHeight: "100vh", background: "#0F0F0F", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div style={{ textAlign: "center" }}>
-        <h1 style={{ fontSize: "18px", fontWeight: 600, color: "#FFFFFF", marginBottom: "8px" }}>Lien introuvable</h1>
-        <p style={{ fontSize: "13px", color: "#888888" }}>Ce lien n&apos;existe pas ou a été désactivé.</p>
+        <h1 style={{ fontSize: "18px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Lien introuvable</h1>
+        <p style={{ fontSize: "13px", color: "var(--text2)" }}>Ce lien n&apos;existe pas ou a été désactivé.</p>
       </div>
     </div>
   );
 
   if (!project) return (
-    <div style={{ minHeight: "100vh", background: "#0F0F0F", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ width: "24px", height: "24px", border: "2px solid #2A2A2A", borderTopColor: "#7F77DD", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -281,25 +284,25 @@ export default function ClientForm() {
   // ─── Page de confirmation ──────────────────────────────────────────────────
 
   if (submitted) return (
-    <div style={{ minHeight: "100vh", background: "#0F0F0F", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div style={{ maxWidth: "480px", width: "100%", textAlign: "center" }}>
         <div style={{ width: "56px", height: "56px", background: "#0A1A12", border: "0.5px solid rgba(29,158,117,0.4)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M5 12l5 5L19 7" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <h1 style={{ fontSize: "22px", fontWeight: 600, color: "#FFFFFF", marginBottom: "10px" }}>Brief envoyé !</h1>
-        <p style={{ fontSize: "14px", color: "#888888", lineHeight: 1.7, marginBottom: "28px" }}>
-          Merci <strong style={{ color: "#FFF" }}>{clientName}</strong>. Ton brief a bien été transmis. Tu vas recevoir ton devis à l&apos;adresse <strong style={{ color: "#FFF" }}>{clientEmail}</strong>.
+        <h1 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "10px" }}>Brief envoyé !</h1>
+        <p style={{ fontSize: "14px", color: "var(--text2)", lineHeight: 1.7, marginBottom: "28px" }}>
+          Merci <strong style={{ color: "var(--text)" }}>{clientName}</strong>. Ton brief a bien été transmis. Tu vas recevoir ton devis à l&apos;adresse <strong style={{ color: "var(--text)" }}>{clientEmail}</strong>.
         </p>
-        <div style={{ background: "#1A1A1A", border: "0.5px solid #2A2A2A", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px" }}>
-          <div style={{ fontSize: "11px", color: "#555555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Total estimé</div>
+        <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Total estimé</div>
           {selectedService && (
-            <div style={{ fontSize: "12px", color: "#666", marginBottom: "6px" }}>{selectedService.name}</div>
+            <div style={{ fontSize: "12px", color: "var(--text3)", marginBottom: "6px" }}>{selectedService.name}</div>
           )}
           <div style={{ fontSize: "28px", fontWeight: 600, color: "#7F77DD" }}>{getTotal()} €</div>
         </div>
-        <p style={{ fontSize: "12px", color: "#444" }}>Propulsé par <span style={{ color: "#7F77DD", fontWeight: 500 }}>Clari</span></p>
+        <p style={{ fontSize: "12px", color: "var(--text3)" }}>Propulsé par <span style={{ color: "#7F77DD", fontWeight: 500 }}>Clari</span></p>
       </div>
     </div>
   );
@@ -315,21 +318,22 @@ export default function ClientForm() {
   // ─── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0F0F0F", fontFamily: "inherit" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "inherit" }}>
 
       {/* Header sticky */}
-      <div style={{ borderBottom: "0.5px solid #2A2A2A", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(15,15,15,0.96)", backdropFilter: "blur(8px)", zIndex: 10 }}>
+      <div style={{ borderBottom: "0.5px solid var(--border)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "var(--bg-blur)", backdropFilter: "blur(8px)", zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "26px", height: "26px", background: "#7F77DD", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 7h10M7 3l4 4-4 4" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span style={{ fontSize: "14px", fontWeight: 600, color: "#FFFFFF" }}>Clari</span>
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Clari</span>
         </div>
 
-        {/* Stepper */}
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {/* Right: stepper + toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {STEP_LABELS.map((label, i) => {
             const num = i + 1;
             const isDone = num < step;
@@ -339,11 +343,11 @@ export default function ClientForm() {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
                   <div style={{
                     width: "20px", height: "20px", borderRadius: "50%",
-                    background: isDone ? "#1D9E75" : isActive ? "#7F77DD" : "#222",
-                    border: `1.5px solid ${isDone ? "#1D9E75" : isActive ? "#7F77DD" : "#333"}`,
+                    background: isDone ? "#1D9E75" : isActive ? "#7F77DD" : "var(--surface2)",
+                    border: `1.5px solid ${isDone ? "#1D9E75" : isActive ? "#7F77DD" : "var(--border)"}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: "9px", fontWeight: 600,
-                    color: isDone || isActive ? "#FFF" : "#555",
+                    color: isDone || isActive ? "#FFF" : "var(--text3)",
                     transition: "all 200ms",
                   }}>
                     {isDone ? (
@@ -352,12 +356,14 @@ export default function ClientForm() {
                       </svg>
                     ) : num}
                   </div>
-                  <span style={{ fontSize: "9px", color: isActive ? "#CECBF6" : isDone ? "#5DCAA5" : "#444", letterSpacing: "0.02em" }}>{label}</span>
+                  <span style={{ fontSize: "9px", color: isActive ? "var(--accent-light)" : isDone ? "#5DCAA5" : "var(--text3)", letterSpacing: "0.02em" }}>{label}</span>
                 </div>
-                {i < 4 && <div style={{ width: "16px", height: "1px", background: isDone ? "#1D9E75" : "#222", marginBottom: "12px", transition: "all 200ms" }} />}
+                {i < 4 && <div style={{ width: "16px", height: "1px", background: isDone ? "#1D9E75" : "var(--surface2)", marginBottom: "12px", transition: "all 200ms" }} />}
               </div>
             );
           })}
+          </div>
+          <ThemeToggle theme={theme} onToggle={toggle} />
         </div>
       </div>
 
@@ -367,22 +373,22 @@ export default function ClientForm() {
         {/* ── ÉTAPE 1 — Choix du service ─────────────────────────────────────── */}
         {step === 1 && (
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: 600, color: "#FFF", marginBottom: "8px", lineHeight: 1.3 }}>
+            <h1 style={{ fontSize: "24px", fontWeight: 600, color: "var(--text)", marginBottom: "8px", lineHeight: 1.3 }}>
               Quelle prestation vous intéresse ?
             </h1>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>
-              Bonjour <strong style={{ color: "#FFF" }}>{project.clientName}</strong> 👋 — sélectionnez la prestation qui correspond à votre projet.
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>
+              Bonjour <strong style={{ color: "var(--text)" }}>{project.clientName}</strong> 👋 — sélectionnez la prestation qui correspond à votre projet.
             </p>
 
             {allServices.length === 0 ? (
-              <div style={{ background: "#1A1A1A", border: "0.5px solid #2A2A2A", borderRadius: "12px", padding: "40px 20px", textAlign: "center" }}>
-                <p style={{ fontSize: "13px", color: "#666" }}>Aucune prestation disponible pour le moment.</p>
+              <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "40px 20px", textAlign: "center" }}>
+                <p style={{ fontSize: "13px", color: "var(--text3)" }}>Aucune prestation disponible pour le moment.</p>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px" }}>
                 {allServices.map((svc) => {
                   const isSelected = selectedService?.id === svc.id;
-                  const col = categoryColors[svc.category] || { bg: "#1A1A1A", color: "#888" };
+                  const col = categoryColors[svc.category] || { bg: "var(--surface)", color: "var(--text2)" };
                   const icon = categoryIcons[svc.category];
                   return (
                     <div
@@ -391,8 +397,8 @@ export default function ClientForm() {
                       style={{
                         display: "flex", justifyContent: "space-between", alignItems: "flex-start",
                         padding: "16px 18px",
-                        background: isSelected ? "#1A1A2E" : "#1A1A1A",
-                        border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "#2A2A2A"}`,
+                        background: isSelected ? "#1A1A2E" : "var(--surface)",
+                        border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "var(--border)"}`,
                         borderRadius: "12px",
                         cursor: "pointer",
                         transition: "all 100ms",
@@ -412,14 +418,14 @@ export default function ClientForm() {
                         {/* Texte */}
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                            <span style={{ fontSize: "15px", color: isSelected ? "#FFF" : "#DDD", fontWeight: isSelected ? 600 : 400 }}>{svc.name}</span>
+                            <span style={{ fontSize: "15px", color: isSelected ? "#FFF" : "var(--text)", fontWeight: isSelected ? 600 : 400 }}>{svc.name}</span>
                             <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "4px", background: col.bg, color: col.color, fontWeight: 500 }}>{svc.category}</span>
                           </div>
                           {svc.description && (
-                            <div style={{ fontSize: "12px", color: "#666", lineHeight: 1.5 }}>{svc.description}</div>
+                            <div style={{ fontSize: "12px", color: "var(--text3)", lineHeight: 1.5 }}>{svc.description}</div>
                           )}
                           {svc.options.length > 0 && (
-                            <div style={{ fontSize: "11px", color: "#555", marginTop: "6px" }}>
+                            <div style={{ fontSize: "11px", color: "var(--text3)", marginTop: "6px" }}>
                               {svc.options.length} option{svc.options.length > 1 ? "s" : ""} disponible{svc.options.length > 1 ? "s" : ""}
                             </div>
                           )}
@@ -432,7 +438,7 @@ export default function ClientForm() {
                           <div style={{ fontSize: "16px", fontWeight: 600, color: isSelected ? "#CECBF6" : "#888" }}>
                             {parseFloat(svc.basePrice).toLocaleString("fr-FR")} €
                           </div>
-                          <div style={{ fontSize: "10px", color: "#444" }}>à partir de</div>
+                          <div style={{ fontSize: "10px", color: "var(--text3)" }}>à partir de</div>
                         </div>
                         <div style={{
                           width: "18px", height: "18px", borderRadius: "50%",
@@ -463,8 +469,8 @@ export default function ClientForm() {
         {/* ── ÉTAPE 2 — Contexte de la marque ───────────────────────────────── */}
         {step === 2 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Contexte de votre marque</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>Ces informations permettent de comprendre votre univers avant d&apos;aborder les choix visuels.</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Contexte de votre marque</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Ces informations permettent de comprendre votre univers avant d&apos;aborder les choix visuels.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
               <div>
@@ -475,7 +481,7 @@ export default function ClientForm() {
                 <label style={labelStyle}>Domaine d&apos;activité *</label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
                   <option value="">Sélectionnez un secteur</option>
-                  {SECTORS.map((s) => <option key={s} value={s} style={{ background: "#1A1A1A" }}>{s}</option>)}
+                  {SECTORS.map((s) => <option key={s} value={s} style={{ background: "var(--surface)" }}>{s}</option>)}
                 </select>
               </div>
               <div>
@@ -491,7 +497,7 @@ export default function ClientForm() {
                 <div style={{ display: "flex", gap: "10px" }}>
                   {["Oui", "Non"].map((v) => (
                     <button key={v} onClick={() => setHasIdentity(v as "Oui" | "Non")}
-                      style={{ flex: 1, padding: "10px", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: `${hasIdentity === v ? "1.5px" : "0.5px"} solid ${hasIdentity === v ? "#7F77DD" : "#2A2A2A"}`, background: hasIdentity === v ? "#1A1A2E" : "transparent", color: hasIdentity === v ? "#CECBF6" : "#888", transition: "all 100ms" }}>
+                      style={{ flex: 1, padding: "10px", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: `${hasIdentity === v ? "1.5px" : "0.5px"} solid ${hasIdentity === v ? "#7F77DD" : "var(--border)"}`, background: hasIdentity === v ? "#1A1A2E" : "transparent", color: hasIdentity === v ? "#CECBF6" : "#888", transition: "all 100ms" }}>
                       {v}
                     </button>
                   ))}
@@ -515,22 +521,22 @@ export default function ClientForm() {
         {/* ── ÉTAPE 3 — Style visuel ─────────────────────────────────────────── */}
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Style visuel</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>Vos choix guideront la direction créative. Vous pouvez sélectionner plusieurs réponses quand c&apos;est indiqué.</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Style visuel</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Vos choix guideront la direction créative. Vous pouvez sélectionner plusieurs réponses quand c&apos;est indiqué.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "28px", marginBottom: "32px" }}>
               {styleQuestions.map((q, qIndex) => (
                 <div key={qIndex}>
-                  <div style={{ fontSize: "14px", fontWeight: 500, color: "#FFF", marginBottom: "12px" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text)", marginBottom: "12px" }}>
                     {q.question}
-                    {q.type === "multi" && <span style={{ fontSize: "11px", color: "#555", fontWeight: 400, marginLeft: "8px" }}>Plusieurs choix possibles</span>}
+                    {q.type === "multi" && <span style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 400, marginLeft: "8px" }}>Plusieurs choix possibles</span>}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                     {q.choices.map((choice) => {
                       const isSelected = isStyleSelected(qIndex, choice);
                       return (
                         <button key={choice} onClick={() => toggleStyle(qIndex, choice, q.type)}
-                          style={{ padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: isSelected ? 500 : 400, cursor: "pointer", fontFamily: "inherit", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "#2A2A2A"}`, background: isSelected ? "#1A1A2E" : "#1A1A1A", color: isSelected ? "#CECBF6" : "#888", transition: "all 100ms" }}>
+                          style={{ padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: isSelected ? 500 : 400, cursor: "pointer", fontFamily: "inherit", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "var(--border)"}`, background: isSelected ? "#1A1A2E" : "var(--surface)", color: isSelected ? "#CECBF6" : "#888", transition: "all 100ms" }}>
                           {choice}
                         </button>
                       );
@@ -541,11 +547,11 @@ export default function ClientForm() {
 
               {/* Références visuelles */}
               <div>
-                <div style={{ fontSize: "14px", fontWeight: 500, color: "#FFF", marginBottom: "4px" }}>
+                <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text)", marginBottom: "4px" }}>
                   Avez-vous des références à partager ?
-                  <span style={{ fontSize: "11px", color: "#555", fontWeight: 400, marginLeft: "8px" }}>Optionnel</span>
+                  <span style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 400, marginLeft: "8px" }}>Optionnel</span>
                 </div>
-                <p style={{ fontSize: "12px", color: "#555", marginBottom: "10px" }}>Liens vers des sites, des logos ou des visuels qui vous inspirent.</p>
+                <p style={{ fontSize: "12px", color: "var(--text3)", marginBottom: "10px" }}>Liens vers des sites, des logos ou des visuels qui vous inspirent.</p>
                 <textarea placeholder="Ex : https://monsite.com, https://instagram.com/..." rows={2} style={{ ...inputStyle, resize: "vertical" }} />
               </div>
             </div>
@@ -560,8 +566,8 @@ export default function ClientForm() {
         {/* ── ÉTAPE 4 — Options & livrables ─────────────────────────────────── */}
         {step === 4 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Options et livrables</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Options et livrables</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>
               {serviceOptions.length > 0
                 ? "Sélectionnez les options souhaitées. Le total se met à jour en temps réel."
                 : "Aucune option supplémentaire disponible pour cette prestation."}
@@ -576,12 +582,12 @@ export default function ClientForm() {
                       const isSelected = selectedOptions.includes(opt.id);
                       return (
                         <div key={opt.id} onClick={() => toggleOption(opt.id)}
-                          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "#1A1A2E" : "#1A1A1A", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "#2A2A2A"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
+                          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "#1A1A2E" : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "var(--border)"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             <div style={{ width: "16px", height: "16px", borderRadius: "4px", border: `1.5px solid ${isSelected ? "#7F77DD" : "#444"}`, background: isSelected ? "#7F77DD" : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               {isSelected && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2L7.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                             </div>
-                            <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "#BBB", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
+                            <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "var(--text2)", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
                           </div>
                           <span style={{ fontSize: "13px", color: isSelected ? "#CECBF6" : "#555", fontWeight: 600, flexShrink: 0, marginLeft: "12px" }}>
                             +{parseFloat(opt.price).toLocaleString("fr-FR")} €
@@ -595,22 +601,22 @@ export default function ClientForm() {
                 {/* Options de délai (%) */}
                 {serviceOptions.filter(o => o.isPercent).length > 0 && (
                   <div>
-                    <div style={{ fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
-                      Délai de livraison <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>— un seul choix</span>
+                    <div style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+                      Délai de livraison <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>— un seul choix</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {serviceOptions.filter(o => o.isPercent).map((opt) => {
                         const isSelected = selectedOptions.includes(opt.id);
                         return (
                           <div key={opt.id} onClick={() => toggleOption(opt.id)}
-                            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "rgba(239,159,39,0.08)" : "#1A1A1A", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#EF9F27" : "#2A2A2A"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
+                            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "rgba(239,159,39,0.08)" : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#EF9F27" : "var(--border)"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                              <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: `1.5px solid ${isSelected ? "#EF9F27" : "#444"}`, background: isSelected ? "#EF9F27" : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: `1.5px solid ${isSelected ? "#EF9F27" : "var(--border-hover)"}`, background: isSelected ? "#EF9F27" : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 {isSelected && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#fff" }} />}
                               </div>
-                              <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "#BBB", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
+                              <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "var(--text2)", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
                             </div>
-                            <span style={{ fontSize: "13px", color: isSelected ? "#EF9F27" : "#555", fontWeight: 600, flexShrink: 0, marginLeft: "12px" }}>
+                            <span style={{ fontSize: "13px", color: isSelected ? "#EF9F27" : "var(--text3)", fontWeight: 600, flexShrink: 0, marginLeft: "12px" }}>
                               +{opt.price}%
                             </span>
                           </div>
@@ -621,8 +627,8 @@ export default function ClientForm() {
                 )}
               </div>
             ) : (
-              <div style={{ background: "#1A1A1A", border: "0.5px solid #2A2A2A", borderRadius: "10px", padding: "24px 20px", textAlign: "center", marginBottom: "32px" }}>
-                <p style={{ fontSize: "13px", color: "#555" }}>Continuer pour finaliser votre brief.</p>
+              <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "10px", padding: "24px 20px", textAlign: "center", marginBottom: "32px" }}>
+                <p style={{ fontSize: "13px", color: "var(--text3)" }}>Continuer pour finaliser votre brief.</p>
               </div>
             )}
 
@@ -636,8 +642,8 @@ export default function ClientForm() {
         {/* ── ÉTAPE 5 — Coordonnées ──────────────────────────────────────────── */}
         {step === 5 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Vos coordonnées</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>Le devis sera envoyé à votre adresse email.</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Vos coordonnées</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Le devis sera envoyé à votre adresse email.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "32px" }}>
               <div>
@@ -650,23 +656,23 @@ export default function ClientForm() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={labelStyle}>Téléphone <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                  <label style={labelStyle}>Téléphone <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                   <input value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} placeholder="+33 6 00 00 00 00" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Ville / Pays <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                  <label style={labelStyle}>Ville / Pays <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                   <input value={clientCity} onChange={(e) => setClientCity(e.target.value)} placeholder="Paris, France" style={inputStyle} />
                 </div>
               </div>
               <div>
-                <label style={labelStyle}>Précisions ou contexte supplémentaire <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                <label style={labelStyle}>Précisions ou contexte supplémentaire <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                 <textarea value={clientNote} onChange={(e) => setClientNote(e.target.value)} placeholder="Des informations complémentaires sur votre projet..." rows={3} style={{ ...inputStyle, resize: "vertical" }} />
               </div>
               <div>
-                <label style={labelStyle}>Comment avez-vous entendu parler de nous ? <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                <label style={labelStyle}>Comment avez-vous entendu parler de nous ? <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                 <select value={clientSource} onChange={(e) => setClientSource(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
                   <option value="">Sélectionner</option>
-                  {SOURCES.map((s) => <option key={s} value={s} style={{ background: "#1A1A1A" }}>{s}</option>)}
+                  {SOURCES.map((s) => <option key={s} value={s} style={{ background: "var(--surface)" }}>{s}</option>)}
                 </select>
               </div>
             </div>
@@ -687,10 +693,10 @@ export default function ClientForm() {
 
       {/* ── Barre de prix sticky ──────────────────────────────────────────── */}
       {step > 1 && selectedService && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(26,26,26,0.97)", borderTop: "0.5px solid #2A2A2A", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(8px)" }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--bg-blur)", borderTop: "0.5px solid var(--border)", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(8px)" }}>
           <div>
-            <div style={{ fontSize: "10px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Total estimé</div>
-            <div style={{ fontSize: "20px", fontWeight: 600, color: "#FFF" }}>
+            <div style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Total estimé</div>
+            <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)" }}>
               {getTotal().toLocaleString("fr-FR")} €
               {selectedOptions.length > 0 && (
                 <span style={{ fontSize: "11px", color: "#7F77DD", fontWeight: 400, marginLeft: "8px" }}>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useTheme } from "@/hooks/useTheme";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   {
@@ -60,6 +62,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [newBriefs, setNewBriefs] = useState(0);
+  const { theme, toggle } = useTheme("dark", "clari_admin_theme");
 
   useEffect(() => {
     fetch("/api/projects")
@@ -84,7 +87,7 @@ export default function Sidebar() {
         className="sidebar-desktop"
         style={{
           width: "220px",
-          background: "#111111",
+          background: "var(--surface)",
           borderRight: "0.5px solid var(--border)",
           flexDirection: "column",
           padding: "20px 0",
@@ -174,6 +177,12 @@ export default function Sidebar() {
             </div>
           </div>
 
+          {/* Theme toggle */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px" }}>
+            <ThemeToggle theme={theme} onToggle={toggle} />
+            <span style={{ fontSize: "12px", color: "var(--text3)" }}>{theme === "dark" ? "Mode sombre" : "Mode clair"}</span>
+          </div>
+
           {/* Logout */}
           <button
             onClick={logout}
@@ -239,6 +248,30 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Theme toggle mobile */}
+        <button
+          onClick={toggle}
+          style={{
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+            padding: "6px 12px", borderRadius: "8px",
+            background: "none", border: "none",
+            color: "var(--text3)", cursor: "pointer",
+            minWidth: "56px", fontFamily: "inherit",
+          }}
+        >
+          {theme === "dark" ? (
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" strokeWidth="1.2"/>
+              <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.9 2.9l1.1 1.1M11 11l1.1 1.1M11 2.9l-1.1 1.1M4 11l-1.1 1.1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M12.5 9A6 6 0 016 2.5a6 6 0 100 10 6 6 0 006.5-3.5z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+          <span style={{ fontSize: "10px", letterSpacing: "0.02em" }}>{theme === "dark" ? "Clair" : "Sombre"}</span>
+        </button>
 
         {/* Logout mobile */}
         <button

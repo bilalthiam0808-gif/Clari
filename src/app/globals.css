@@ -19,6 +19,31 @@
   --warning-bg: #1A1200;
   --error: #E24B4A;
   --error-bg: #1A0A0A;
+  --bg-blur: rgba(15, 15, 15, 0.96);
+  --input-placeholder: #555555;
+}
+
+[data-theme="light"] {
+  --bg: #F7F7F8;
+  --surface: #FFFFFF;
+  --surface2: #F0F0F2;
+  --border: #E4E4E7;
+  --border-hover: #CACAD2;
+  --accent: #7F77DD;
+  --accent-light: #5A52C8;
+  --accent-bg: #EEEEFF;
+  --accent-hover: #6A63CA;
+  --text: #111111;
+  --text2: #666666;
+  --text3: #999999;
+  --success: #1A9E72;
+  --success-bg: #EDFAF5;
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+  --error: #DC2626;
+  --error-bg: #FEF2F2;
+  --bg-blur: rgba(247, 247, 248, 0.96);
+  --input-placeholder: #AAAAAA;
 }
 
 @theme inline {
@@ -28,6 +53,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+input::placeholder, textarea::placeholder, select::placeholder {
+  color: var(--input-placeholder);
 }
 
 html {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTheme } from "@/hooks/useTheme";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -95,7 +97,7 @@ const categoryColors: Record<string, { bg: string; color: string }> = {
 };
 
 function getCategoryColor(cat: string) {
-  return categoryColors[cat] || { bg: "#1A1A1A", color: "#888888" };
+  return categoryColors[cat] || { bg: "var(--surface)", color: "var(--text2)" };
 }
 
 const SERVICE_INFO: { key: Category; displayName: string; icon: React.ReactNode; description: string }[] = [
@@ -146,6 +148,7 @@ function generateSlug(name: string): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BriefPage() {
+  const { theme, toggle } = useTheme("light", "clari_client_theme");
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [step, setStep] = useState(1);
@@ -274,24 +277,24 @@ export default function BriefPage() {
   // ─── Styles communs ────────────────────────────────────────────────────────
 
   const inputStyle: React.CSSProperties = {
-    background: "#1A1A1A", border: "0.5px solid #2A2A2A", borderRadius: "8px",
-    padding: "10px 14px", fontSize: "14px", color: "#FFFFFF",
+    background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "8px",
+    padding: "10px 14px", fontSize: "14px", color: "var(--text)",
     width: "100%", outline: "none", fontFamily: "inherit",
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: "11px", color: "#888888", textTransform: "uppercase",
+    fontSize: "11px", color: "var(--text2)", textTransform: "uppercase",
     letterSpacing: "0.06em", marginBottom: "6px", display: "block", fontWeight: 500,
   };
 
   const btnPrimary: React.CSSProperties = {
-    flex: 1, background: "#7F77DD", color: "#FFFFFF", border: "none",
+    flex: 1, background: "var(--accent)", color: "#FFFFFF", border: "none",
     borderRadius: "10px", padding: "13px", fontSize: "14px", fontWeight: 500,
     cursor: "pointer", fontFamily: "inherit",
   };
 
   const btnSecondary: React.CSSProperties = {
-    background: "transparent", color: "#888888", border: "0.5px solid #2A2A2A",
+    background: "transparent", color: "var(--text2)", border: "0.5px solid var(--border)",
     borderRadius: "10px", padding: "13px 20px", fontSize: "13px",
     cursor: "pointer", fontFamily: "inherit",
   };
@@ -309,45 +312,47 @@ export default function BriefPage() {
   // ─── Page de confirmation ──────────────────────────────────────────────────
 
   if (submitted) return (
-    <div style={{ minHeight: "100vh", background: "#0F0F0F", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div style={{ maxWidth: "480px", width: "100%", textAlign: "center" }}>
         <div style={{ width: "56px", height: "56px", background: "#0A1A12", border: "0.5px solid rgba(29,158,117,0.4)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M5 12l5 5L19 7" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <h1 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "10px" }}>Brief envoyé !</h1>
-        <p style={{ fontSize: "14px", color: "#888", lineHeight: 1.7, marginBottom: "28px" }}>
-          Merci <strong style={{ color: "#FFF" }}>{clientName}</strong>. Votre brief a bien été reçu. Vous allez recevoir votre devis à <strong style={{ color: "#FFF" }}>{clientEmail}</strong>.
+        <h1 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "10px" }}>Brief envoyé !</h1>
+        <p style={{ fontSize: "14px", color: "var(--text2)", lineHeight: 1.7, marginBottom: "28px" }}>
+          Merci <strong style={{ color: "var(--text)" }}>{clientName}</strong>. Votre brief a bien été reçu. Vous allez recevoir votre devis à <strong style={{ color: "var(--text)" }}>{clientEmail}</strong>.
         </p>
         {selectedService && (
-          <div style={{ background: "#1A1A1A", border: "0.5px solid #2A2A2A", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px" }}>
-            <div style={{ fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Total estimé</div>
-            <div style={{ fontSize: "12px", color: "#666", marginBottom: "6px" }}>{selectedService.name}</div>
+          <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px" }}>
+            <div style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Total estimé</div>
+            <div style={{ fontSize: "12px", color: "var(--text3)", marginBottom: "6px" }}>{selectedService.name}</div>
             <div style={{ fontSize: "28px", fontWeight: 600, color: "#7F77DD" }}>{getTotal().toLocaleString("fr-FR")} €</div>
           </div>
         )}
-        <p style={{ fontSize: "12px", color: "#444" }}>Propulsé par <span style={{ color: "#7F77DD", fontWeight: 500 }}>Clari</span></p>
+        <p style={{ fontSize: "12px", color: "var(--text3)" }}>Propulsé par <span style={{ color: "#7F77DD", fontWeight: 500 }}>Clari</span></p>
       </div>
     </div>
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0F0F0F", fontFamily: "inherit" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "inherit" }}>
 
       {/* Header sticky */}
-      <div style={{ borderBottom: "0.5px solid #2A2A2A", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(15,15,15,0.96)", backdropFilter: "blur(8px)", zIndex: 10 }}>
+      <div style={{ borderBottom: "0.5px solid var(--border)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "var(--bg-blur)", backdropFilter: "blur(8px)", zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "26px", height: "26px", background: "#7F77DD", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 7h10M7 3l4 4-4 4" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span style={{ fontSize: "14px", fontWeight: 600, color: "#FFF" }}>Clari</span>
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Clari</span>
         </div>
 
-        {/* Stepper */}
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {/* Right: stepper + toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Stepper */}
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {STEP_LABELS.map((label, i) => {
             const num = i + 1;
             const isDone = num < step;
@@ -355,15 +360,17 @@ export default function BriefPage() {
             return (
               <div key={label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
-                  <div style={{ width: "20px", height: "20px", borderRadius: "50%", background: isDone ? "#1D9E75" : isActive ? "#7F77DD" : "#222", border: `1.5px solid ${isDone ? "#1D9E75" : isActive ? "#7F77DD" : "#333"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", fontWeight: 600, color: isDone || isActive ? "#FFF" : "#555", transition: "all 200ms" }}>
+                  <div style={{ width: "20px", height: "20px", borderRadius: "50%", background: isDone ? "#1D9E75" : isActive ? "#7F77DD" : "var(--surface2)", border: `1.5px solid ${isDone ? "#1D9E75" : isActive ? "#7F77DD" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", fontWeight: 600, color: isDone || isActive ? "#FFF" : "var(--text3)", transition: "all 200ms" }}>
                     {isDone ? <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2L7.5 2" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg> : num}
                   </div>
-                  <span style={{ fontSize: "9px", color: isActive ? "#CECBF6" : isDone ? "#5DCAA5" : "#444", letterSpacing: "0.02em" }}>{label}</span>
+                  <span style={{ fontSize: "9px", color: isActive ? "var(--accent-light)" : isDone ? "#5DCAA5" : "var(--text3)", letterSpacing: "0.02em" }}>{label}</span>
                 </div>
-                {i < 4 && <div style={{ width: "12px", height: "1px", background: isDone ? "#1D9E75" : "#222", marginBottom: "12px", transition: "all 200ms" }} />}
+                {i < 4 && <div style={{ width: "12px", height: "1px", background: isDone ? "#1D9E75" : "var(--surface2)", marginBottom: "12px", transition: "all 200ms" }} />}
               </div>
             );
           })}
+          </div>
+          <ThemeToggle theme={theme} onToggle={toggle} />
         </div>
       </div>
 
@@ -373,10 +380,10 @@ export default function BriefPage() {
         {/* ── ÉTAPE 1 — Service père ─────────────────────────────────────────── */}
         {step === 1 && (
           <div>
-            <h1 style={{ fontSize: "24px", fontWeight: 600, color: "#FFF", marginBottom: "8px", lineHeight: 1.3 }}>
+            <h1 style={{ fontSize: "24px", fontWeight: 600, color: "var(--text)", marginBottom: "8px", lineHeight: 1.3 }}>
               Bonjour 👋 Quel service vous intéresse ?
             </h1>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "32px" }}>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "32px" }}>
               Sélectionnez le service correspondant à votre projet. Vous choisirez ensuite les options qui vous conviennent.
             </p>
 
@@ -387,8 +394,8 @@ export default function BriefPage() {
                 const svcInfo = SERVICE_INFO.find(s => s.key === svc.category);
                 return (
                   <div key={svc.id} onClick={() => setSelectedService(svc)}
-                    style={{ display: "flex", alignItems: "center", gap: "18px", padding: "20px 22px", background: isSelected ? col.bg : "#1A1A1A", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? col.color : "#2A2A2A"}`, borderRadius: "14px", cursor: "pointer", transition: "all 100ms" }}>
-                    <div style={{ color: isSelected ? col.color : "#555", flexShrink: 0 }}>
+                    style={{ display: "flex", alignItems: "center", gap: "18px", padding: "20px 22px", background: isSelected ? col.bg : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? col.color : "var(--border)"}`, borderRadius: "14px", cursor: "pointer", transition: "all 100ms" }}>
+                    <div style={{ color: isSelected ? col.color : "var(--text3)", flexShrink: 0 }}>
                       {svcInfo?.icon || (
                         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
                           <rect x="4" y="4" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="1.4"/>
@@ -397,16 +404,16 @@ export default function BriefPage() {
                       )}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: "16px", fontWeight: isSelected ? 600 : 500, color: isSelected ? "#FFF" : "#DDD", marginBottom: "3px" }}>{svcInfo?.displayName || svc.name}</div>
-                      <div style={{ fontSize: "13px", color: isSelected ? col.color : "#555" }}>
+                      <div style={{ fontSize: "16px", fontWeight: isSelected ? 600 : 500, color: isSelected ? "#FFF" : "var(--text)", marginBottom: "3px" }}>{svcInfo?.displayName || svc.name}</div>
+                      <div style={{ fontSize: "13px", color: isSelected ? col.color : "var(--text3)" }}>
                         {svcInfo?.description || svc.description}
                       </div>
                     </div>
                     <div style={{ textAlign: "right", marginRight: "12px", flexShrink: 0 }}>
-                      <div style={{ fontSize: "15px", fontWeight: 600, color: isSelected ? col.color : "#555" }}>
+                      <div style={{ fontSize: "15px", fontWeight: 600, color: isSelected ? col.color : "var(--text3)" }}>
                         {parseFloat(svc.basePrice).toLocaleString("fr-FR")} €
                       </div>
-                      <div style={{ fontSize: "10px", color: "#444" }}>à partir de</div>
+                      <div style={{ fontSize: "10px", color: "var(--text3)" }}>à partir de</div>
                     </div>
                     <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: `1.5px solid ${isSelected ? col.color : "#444"}`, background: isSelected ? col.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {isSelected && <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#fff" }} />}
@@ -430,8 +437,8 @@ export default function BriefPage() {
                 <span style={{ fontSize: "11px", fontWeight: 500, padding: "3px 10px", borderRadius: "6px", background: catColor.bg, color: catColor.color }}>{selectedService.name}</span>
               </div>
             )}
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Contexte de votre marque</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>Ces informations permettent de comprendre votre univers avant d&apos;aborder les choix visuels.</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Contexte de votre marque</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Ces informations permettent de comprendre votre univers avant d&apos;aborder les choix visuels.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
               <div>
@@ -442,7 +449,7 @@ export default function BriefPage() {
                 <label style={labelStyle}>Domaine d&apos;activité *</label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
                   <option value="">Sélectionnez un secteur</option>
-                  {SECTORS.map(s => <option key={s} value={s} style={{ background: "#1A1A1A" }}>{s}</option>)}
+                  {SECTORS.map(s => <option key={s} value={s} style={{ background: "var(--surface)" }}>{s}</option>)}
                 </select>
               </div>
               <div>
@@ -458,7 +465,7 @@ export default function BriefPage() {
                 <div style={{ display: "flex", gap: "10px" }}>
                   {["Oui", "Non"].map(v => (
                     <button key={v} onClick={() => setHasIdentity(v as "Oui" | "Non")}
-                      style={{ flex: 1, padding: "10px", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: `${hasIdentity === v ? "1.5px" : "0.5px"} solid ${hasIdentity === v ? "#7F77DD" : "#2A2A2A"}`, background: hasIdentity === v ? "#1A1A2E" : "transparent", color: hasIdentity === v ? "#CECBF6" : "#888", transition: "all 100ms" }}>
+                      style={{ flex: 1, padding: "10px", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", border: `${hasIdentity === v ? "1.5px" : "0.5px"} solid ${hasIdentity === v ? "#7F77DD" : "var(--border)"}`, background: hasIdentity === v ? "#1A1A2E" : "transparent", color: hasIdentity === v ? "#CECBF6" : "var(--text2)", transition: "all 100ms" }}>
                       {v}
                     </button>
                   ))}
@@ -476,15 +483,15 @@ export default function BriefPage() {
         {/* ── ÉTAPE 3 — Composition ─────────────────────────────────────────── */}
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px", letterSpacing: "0.04em", textTransform: "uppercase" }}>Composition</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>Décrivez votre projet dans le détail. Ces réponses servent de base à votre cahier des charges — soyez aussi précis que possible.</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px", letterSpacing: "0.04em", textTransform: "uppercase" }}>Composition</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Décrivez votre projet dans le détail. Ces réponses servent de base à votre cahier des charges — soyez aussi précis que possible.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "28px", marginBottom: "32px" }}>
               {styleQuestions.map((q, qIndex) => (
                 <div key={qIndex}>
-                  <div style={{ fontSize: "14px", fontWeight: 500, color: "#FFF", marginBottom: "12px" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--text)", marginBottom: "12px" }}>
                     {q.question}
-                    {q.type === "multi" && <span style={{ fontSize: "11px", color: "#555", fontWeight: 400, marginLeft: "8px" }}>Plusieurs choix possibles</span>}
+                    {q.type === "multi" && <span style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 400, marginLeft: "8px" }}>Plusieurs choix possibles</span>}
                   </div>
                   {q.type === "text" ? (
                     <textarea
@@ -501,13 +508,13 @@ export default function BriefPage() {
                           const isSelected = isStyleSelected(qIndex, choice);
                           return (
                             <button key={choice} onClick={() => toggleStyle(qIndex, choice, q.type)}
-                              style={{ padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: isSelected ? 500 : 400, cursor: "pointer", fontFamily: "inherit", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "#2A2A2A"}`, background: isSelected ? "#1A1A2E" : "#1A1A1A", color: isSelected ? "#CECBF6" : "#888", transition: "all 100ms" }}>
+                              style={{ padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: isSelected ? 500 : 400, cursor: "pointer", fontFamily: "inherit", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "var(--border)"}`, background: isSelected ? "#1A1A2E" : "var(--surface)", color: isSelected ? "#CECBF6" : "var(--text2)", transition: "all 100ms" }}>
                               {choice}
                             </button>
                           );
                         })}
                         <button onClick={() => toggleStyle(qIndex, "Autre", q.type)}
-                          style={{ padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: isStyleSelected(qIndex, "Autre") ? 500 : 400, cursor: "pointer", fontFamily: "inherit", border: `${isStyleSelected(qIndex, "Autre") ? "1.5px" : "0.5px"} solid ${isStyleSelected(qIndex, "Autre") ? "#7F77DD" : "#2A2A2A"}`, background: isStyleSelected(qIndex, "Autre") ? "#1A1A2E" : "#1A1A1A", color: isStyleSelected(qIndex, "Autre") ? "#CECBF6" : "#555", transition: "all 100ms", fontStyle: "italic" }}>
+                          style={{ padding: "8px 14px", borderRadius: "8px", fontSize: "13px", fontWeight: isStyleSelected(qIndex, "Autre") ? 500 : 400, cursor: "pointer", fontFamily: "inherit", border: `${isStyleSelected(qIndex, "Autre") ? "1.5px" : "0.5px"} solid ${isStyleSelected(qIndex, "Autre") ? "#7F77DD" : "var(--border)"}`, background: isStyleSelected(qIndex, "Autre") ? "#1A1A2E" : "var(--surface)", color: isStyleSelected(qIndex, "Autre") ? "#CECBF6" : "#555", transition: "all 100ms", fontStyle: "italic" }}>
                           + Autre
                         </button>
                       </div>
@@ -536,8 +543,8 @@ export default function BriefPage() {
         {/* ── ÉTAPE 4 — Options ─────────────────────────────────────────────── */}
         {step === 4 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Options et livrables</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Options et livrables</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>
               {serviceOptions.length > 0 ? "Sélectionnez les options souhaitées. Le total se met à jour en temps réel." : "Aucune option supplémentaire pour cette prestation."}
             </p>
 
@@ -550,12 +557,12 @@ export default function BriefPage() {
                       const isSelected = selectedOptions.includes(opt.id);
                       return (
                         <div key={opt.id} onClick={() => toggleOption(opt.id)}
-                          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "#1A1A2E" : "#1A1A1A", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "#2A2A2A"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
+                          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "#1A1A2E" : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "var(--border)"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             <div style={{ width: "16px", height: "16px", borderRadius: "4px", border: `1.5px solid ${isSelected ? "#7F77DD" : "#444"}`, background: isSelected ? "#7F77DD" : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               {isSelected && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2L7.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                             </div>
-                            <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "#BBB", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
+                            <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "var(--text2)", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
                           </div>
                           <span style={{ fontSize: "13px", color: isSelected ? "#CECBF6" : "#555", fontWeight: 600, flexShrink: 0, marginLeft: "12px" }}>
                             +{parseFloat(opt.price).toLocaleString("fr-FR")} €
@@ -569,20 +576,20 @@ export default function BriefPage() {
                 {/* Délais en % */}
                 {serviceOptions.filter(o => o.isPercent).length > 0 && (
                   <div>
-                    <div style={{ fontSize: "11px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
-                      Délai de livraison <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>— un seul choix</span>
+                    <div style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+                      Délai de livraison <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>— un seul choix</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {serviceOptions.filter(o => o.isPercent).map(opt => {
                         const isSelected = selectedOptions.includes(opt.id);
                         return (
                           <div key={opt.id} onClick={() => toggleOption(opt.id)}
-                            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "rgba(239,159,39,0.08)" : "#1A1A1A", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#EF9F27" : "#2A2A2A"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
+                            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "rgba(239,159,39,0.08)" : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#EF9F27" : "var(--border)"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                               <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: `1.5px solid ${isSelected ? "#EF9F27" : "#444"}`, background: isSelected ? "#EF9F27" : "transparent", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 {isSelected && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#fff" }} />}
                               </div>
-                              <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "#BBB", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
+                              <span style={{ fontSize: "13px", color: isSelected ? "#FFF" : "var(--text2)", fontWeight: isSelected ? 500 : 400 }}>{opt.label}</span>
                             </div>
                             <span style={{ fontSize: "13px", color: isSelected ? "#EF9F27" : "#555", fontWeight: 600, flexShrink: 0, marginLeft: "12px" }}>+{opt.price}%</span>
                           </div>
@@ -593,8 +600,8 @@ export default function BriefPage() {
                 )}
               </div>
             ) : (
-              <div style={{ background: "#1A1A1A", border: "0.5px solid #2A2A2A", borderRadius: "10px", padding: "24px 20px", textAlign: "center", marginBottom: "32px" }}>
-                <p style={{ fontSize: "13px", color: "#555" }}>Continuez pour finaliser votre brief.</p>
+              <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "10px", padding: "24px 20px", textAlign: "center", marginBottom: "32px" }}>
+                <p style={{ fontSize: "13px", color: "var(--text3)" }}>Continuez pour finaliser votre brief.</p>
               </div>
             )}
 
@@ -608,8 +615,8 @@ export default function BriefPage() {
         {/* ── ÉTAPE 5 — Coordonnées ─────────────────────────────────────────── */}
         {step === 5 && (
           <div>
-            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#FFF", marginBottom: "8px" }}>Vos coordonnées</h2>
-            <p style={{ fontSize: "13px", color: "#888", marginBottom: "28px" }}>Votre devis estimatif sera transmis à votre adresse email.</p>
+            <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Vos coordonnées</h2>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Votre devis estimatif sera transmis à votre adresse email.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "32px" }}>
               <div>
@@ -622,23 +629,23 @@ export default function BriefPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={labelStyle}>Téléphone <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                  <label style={labelStyle}>Téléphone <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                   <input value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} placeholder="+33 6 00 00 00 00" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Ville / Pays <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                  <label style={labelStyle}>Ville / Pays <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                   <input value={clientCity} onChange={(e) => setClientCity(e.target.value)} placeholder="Paris, France" style={inputStyle} />
                 </div>
               </div>
               <div>
-                <label style={labelStyle}>Précisions supplémentaires <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                <label style={labelStyle}>Précisions supplémentaires <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                 <textarea value={clientNote} onChange={(e) => setClientNote(e.target.value)} placeholder="Des informations complémentaires sur votre projet..." rows={3} style={{ ...inputStyle, resize: "vertical" }} />
               </div>
               <div>
-                <label style={labelStyle}>Comment nous avez-vous trouvés ? <span style={{ color: "#444", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
+                <label style={labelStyle}>Comment nous avez-vous trouvés ? <span style={{ color: "var(--text3)", textTransform: "none", letterSpacing: 0 }}>(optionnel)</span></label>
                 <select value={clientSource} onChange={(e) => setClientSource(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
                   <option value="">Sélectionner</option>
-                  {SOURCES.map(s => <option key={s} value={s} style={{ background: "#1A1A1A" }}>{s}</option>)}
+                  {SOURCES.map(s => <option key={s} value={s} style={{ background: "var(--surface)" }}>{s}</option>)}
                 </select>
               </div>
             </div>
@@ -655,10 +662,10 @@ export default function BriefPage() {
 
       {/* ── Barre de prix sticky ──────────────────────────────────────────── */}
       {step > 1 && selectedService && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(26,26,26,0.97)", borderTop: "0.5px solid #2A2A2A", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(8px)" }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--bg-blur)", borderTop: "0.5px solid var(--border)", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(8px)" }}>
           <div>
-            <div style={{ fontSize: "10px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Total estimé</div>
-            <div style={{ fontSize: "20px", fontWeight: 600, color: "#FFF" }}>
+            <div style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Total estimé</div>
+            <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)" }}>
               {getTotal().toLocaleString("fr-FR")} €
               {selectedOptions.length > 0 && (
                 <span style={{ fontSize: "11px", color: "#7F77DD", fontWeight: 400, marginLeft: "8px" }}>
@@ -668,7 +675,7 @@ export default function BriefPage() {
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "12px", color: "#CCC", fontWeight: 500 }}>{SERVICE_INFO.find(s => s.key === selectedService.category)?.displayName || selectedService.name}</div>
+            <div style={{ fontSize: "12px", color: "var(--text2)", fontWeight: 500 }}>{SERVICE_INFO.find(s => s.key === selectedService.category)?.displayName || selectedService.name}</div>
             <div style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: catColor.bg, color: catColor.color, display: "inline-block", marginTop: "3px" }}>
               {selectedService.category}
             </div>
