@@ -267,7 +267,7 @@ export default function Sidebar() {
             </svg>
           ) : (
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <path d="M12.5 9A6 6 0 016 2.5a6 6 0 100 10 6 6 0 006.5-3.5z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M7.5 1.875a3.75 3.75 0 0 0 5.625 5.625 5.625 5.625 0 1 1-5.625-5.625Z" fill="currentColor"/>
             </svg>
           )}
           <span style={{ fontSize: "10px", letterSpacing: "0.02em" }}>{theme === "dark" ? "Clair" : "Sombre"}</span>
