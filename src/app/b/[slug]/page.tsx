@@ -57,7 +57,7 @@ const STYLE_QUESTIONS: Record<Category, { question: string; type: "single" | "mu
   ],
 };
 
-const SECTORS = ["Mode", "Beauté", "Food & Restauration", "Tech", "Santé & Bien-être", "Sport", "Immobilier", "Éducation", "Autre"];
+const SECTORS = ["Mode", "Beauté", "Food & Restauration", "Tech", "Santé & Bien-être", "Sport", "Hygiène & Propreté", "Immobilier", "Éducation", "Autre"];
 const SOURCES = ["Instagram", "Bouche à oreille", "Google", "Recommandation d'un ami", "LinkedIn", "Autre"];
 
 // ─── Helpers visuels ──────────────────────────────────────────────────────────
