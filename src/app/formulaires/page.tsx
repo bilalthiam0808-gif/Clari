@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 
 type QType = "single" | "multi" | "text";
@@ -80,6 +80,10 @@ export default function FormulairesPage() {
   const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
+  const [canUndo, setCanUndo] = useState<Record<Cat, boolean>>({ "Graphisme": false, "Motion Design": false, "Site web": false });
+  const [canRedo, setCanRedo] = useState<Record<Cat, boolean>>({ "Graphisme": false, "Motion Design": false, "Site web": false });
+  const undoStack = useRef<Record<Cat, FQ[][]>>({ "Graphisme": [], "Motion Design": [], "Site web": [] });
+  const redoStack = useRef<Record<Cat, FQ[][]>>({ "Graphisme": [], "Motion Design": [], "Site web": [] });
 
   useEffect(() => {
     fetch("/api/form-questions")
@@ -102,8 +106,49 @@ export default function FormulairesPage() {
   }, []);
 
   function update(cat: Cat, fn: (qs: FQ[]) => FQ[]) {
-    setForms(prev => ({ ...prev, [cat]: fn(prev[cat]) }));
+    setForms(prev => {
+      undoStack.current[cat] = [...undoStack.current[cat], prev[cat]];
+      redoStack.current[cat] = [];
+      setCanUndo(u => ({ ...u, [cat]: true }));
+      setCanRedo(r => ({ ...r, [cat]: false }));
+      return { ...prev, [cat]: fn(prev[cat]) };
+    });
   }
+
+  const undo = useCallback(() => {
+    const stack = undoStack.current[active];
+    if (!stack.length) return;
+    const prev = stack[stack.length - 1];
+    undoStack.current[active] = stack.slice(0, -1);
+    setForms(cur => {
+      redoStack.current[active] = [...redoStack.current[active], cur[active]];
+      setCanRedo(r => ({ ...r, [active]: true }));
+      setCanUndo(u => ({ ...u, [active]: undoStack.current[active].length > 0 }));
+      return { ...cur, [active]: prev };
+    });
+  }, [active]);
+
+  const redo = useCallback(() => {
+    const stack = redoStack.current[active];
+    if (!stack.length) return;
+    const next = stack[stack.length - 1];
+    redoStack.current[active] = stack.slice(0, -1);
+    setForms(cur => {
+      undoStack.current[active] = [...undoStack.current[active], cur[active]];
+      setCanUndo(u => ({ ...u, [active]: true }));
+      setCanRedo(r => ({ ...r, [active]: redoStack.current[active].length > 0 }));
+      return { ...cur, [active]: next };
+    });
+  }, [active]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo, redo]);
 
   function updateQ(i: number, patch: Partial<FQ>) {
     update(active, qs => qs.map((q, idx) => idx === i ? { ...q, ...patch } : q));
@@ -185,7 +230,7 @@ export default function FormulairesPage() {
               Personnalisez les questions posées à vos clients selon chaque service.
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             {feedback === "saved" && (
               <span style={{ fontSize: "12px", color: "var(--success)", display: "flex", alignItems: "center", gap: "5px" }}>
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3L11 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -195,6 +240,17 @@ export default function FormulairesPage() {
             {feedback === "error" && (
               <span style={{ fontSize: "12px", color: "var(--error)" }}>Erreur lors de l'enregistrement</span>
             )}
+            {/* Undo */}
+            <button onClick={undo} disabled={!canUndo[active]} title="Annuler (Ctrl+Z)"
+              style={{ width: "32px", height: "32px", borderRadius: "8px", border: "0.5px solid var(--border)", background: "transparent", color: canUndo[active] ? "var(--text2)" : "var(--text3)", cursor: canUndo[active] ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", opacity: canUndo[active] ? 1 : 0.35, transition: "all 100ms" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 5h6a4 4 0 1 1 0 8H4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 5l2.5-2.5M2 5l2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            {/* Redo */}
+            <button onClick={redo} disabled={!canRedo[active]} title="Rétablir (Ctrl+Y)"
+              style={{ width: "32px", height: "32px", borderRadius: "8px", border: "0.5px solid var(--border)", background: "transparent", color: canRedo[active] ? "var(--text2)" : "var(--text3)", cursor: canRedo[active] ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", opacity: canRedo[active] ? 1 : 0.35, transition: "all 100ms" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12 5H6a4 4 0 1 0 0 8h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 5l-2.5-2.5M12 5l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <div style={{ width: "0.5px", height: "20px", background: "var(--border)", margin: "0 2px" }} />
             <button onClick={save} disabled={saving}
               style={{ padding: "8px 18px", borderRadius: "8px", fontSize: "13px", fontWeight: 500, cursor: saving ? "not-allowed" : "pointer", fontFamily: "inherit", background: "var(--accent)", color: "#FFF", border: "none", opacity: saving ? 0.6 : 1, transition: "opacity 100ms" }}>
               {saving ? "Enregistrement…" : "Enregistrer"}

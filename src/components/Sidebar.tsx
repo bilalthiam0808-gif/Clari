@@ -60,6 +60,17 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    label: "Clients",
+    href: "/clients",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M1 13c0-2.761 2.239-4 5-4s5 1.239 5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+        <path d="M11 7.5a2 2 0 1 0 0-4M14 13c0-1.8-1.2-3-3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ];
 
 const logoutIcon = (
