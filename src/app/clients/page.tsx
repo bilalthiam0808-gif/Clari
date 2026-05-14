@@ -110,6 +110,9 @@ export default function ClientsPage() {
   const [relancing, setRelancing] = useState<Record<string, boolean>>({});
   const [relanced, setRelanced] = useState<Record<string, boolean>>({});
 
+  // Envoi facture PDF
+  const [sendingFacture, setSendingFacture] = useState<Record<string, boolean>>({});
+
   // Modal nouvelle facture
   const [showFactureModal, setShowFactureModal] = useState<{ client: Client; project: Project | null } | null>(null);
   const [fServiceName, setFServiceName] = useState("");
@@ -213,6 +216,26 @@ export default function ClientsPage() {
     if (res.ok) {
       setRelanced(r => ({ ...r, [key]: true }));
       setTimeout(() => setRelanced(r => { const c = { ...r }; delete c[key]; return c; }), 4000);
+    }
+  }
+
+  async function sendFacture(factureId: string, email: string) {
+    setSendingFacture(s => ({ ...s, [factureId]: true }));
+    const res = await fetch(`/api/factures/${factureId}/send`, { method: "POST" });
+    setSendingFacture(s => ({ ...s, [factureId]: false }));
+    if (res.ok) {
+      const { ref } = await res.json();
+      toast(`Facture N°${ref} envoyée à ${email}`, "success");
+      // Mise à jour locale du statut
+      setFactures(f => {
+        const updated: Record<string, Facture[]> = {};
+        for (const [k, arr] of Object.entries(f)) {
+          updated[k] = arr.map(fa => fa.id === factureId && fa.status === "En attente" ? { ...fa, status: "Envoyée" } : fa);
+        }
+        return updated;
+      });
+    } else {
+      toast("Erreur lors de l'envoi de la facture", "error");
     }
   }
 
@@ -530,6 +553,19 @@ export default function ClientsPage() {
                                       style={{ fontSize: "10px", fontWeight: 500, padding: "3px 6px", borderRadius: "5px", background: fc.bg, color: fc.color, border: `0.5px solid ${fc.color}40`, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, appearance: "none" }}>
                                       {FACTURE_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
+                                    {/* Envoyer PDF */}
+                                    <button
+                                      onClick={() => sendFacture(fa.id, fa.clientEmail)}
+                                      disabled={sendingFacture[fa.id]}
+                                      title="Envoyer la facture PDF par email"
+                                      style={{ display: "flex", alignItems: "center", gap: "4px", padding: "4px 9px", borderRadius: "6px", border: "0.5px solid rgba(127,119,221,0.4)", background: "var(--accent-bg)", color: "var(--accent-light)", fontSize: "11px", fontWeight: 500, cursor: sendingFacture[fa.id] ? "not-allowed" : "pointer", fontFamily: "inherit", flexShrink: 0, opacity: sendingFacture[fa.id] ? 0.6 : 1 }}>
+                                      {sendingFacture[fa.id] ? (
+                                        <div style={{ width: "10px", height: "10px", border: "1.5px solid var(--accent-light)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+                                      ) : (
+                                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1v6M2.5 4.5L5 7l2.5-2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M1.5 8.5h7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                                      )}
+                                      {sendingFacture[fa.id] ? "Envoi…" : "Envoyer"}
+                                    </button>
                                     {/* Relancer */}
                                     {fa.status !== "Payée" && (
                                       relanced[keyF] ? (
