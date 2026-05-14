@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
+import { toast } from "@/components/Toaster";
 
 type Service = { id: string; name: string; category: string };
 
@@ -215,6 +216,34 @@ export default function ClientsPage() {
     }
   }
 
+  function exportClientsCSV() {
+    const rows = [["Client", "Email", "Téléphone", "Ville", "Projets", "Dernier statut"]];
+    for (const c of clients) {
+      rows.push([c.name, c.email, c.phone ?? "", c.city ?? "", String(c.projects.length), c.projects[0]?.status ?? ""]);
+    }
+    const csv = rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "clients-clari.csv"; a.click();
+    URL.revokeObjectURL(url);
+    toast("Export téléchargé", "success");
+  }
+
+  function exportFacturesCSV() {
+    const allFactures = Object.values(factures).flat();
+    if (!allFactures.length) { toast("Aucune facture à exporter", "info"); return; }
+    const rows = [["Client", "Email", "Prestation", "Montant (€)", "Statut", "Émise le", "Échéance", "Payée le"]];
+    for (const f of allFactures) {
+      rows.push([f.clientName, f.clientEmail, f.serviceName, String(f.amount), f.status, fmtDate(f.issuedAt), fmtDate(f.dueAt), fmtDate(f.paidAt)]);
+    }
+    const csv = rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "factures-clari.csv"; a.click();
+    URL.revokeObjectURL(url);
+    toast("Export téléchargé", "success");
+  }
+
   function openModal() {
     setClientName(""); setClientEmail(""); setServiceId(services[0]?.id ?? "");
     setGeneratedSlug(null); setCopied(false); setShowModal(true);
@@ -266,11 +295,26 @@ export default function ClientsPage() {
               {mounted ? `${clients.length} client${clients.length > 1 ? "s" : ""}` : "Chargement…"}
             </p>
           </div>
-          <button onClick={openModal}
-            style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 18px", borderRadius: "9px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", background: "var(--accent)", color: "#FFF", border: "none" }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            Nouveau client
-          </button>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <button onClick={exportClientsCSV} title="Exporter clients CSV"
+              style={{ width: "34px", height: "34px", display: "flex", alignItems: "center", justifyContent: "center", border: "0.5px solid var(--border)", borderRadius: "9px", background: "transparent", color: "var(--text3)", cursor: "pointer" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.borderColor = "var(--border-hover)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--text3)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 10v1.5A1.5 1.5 0 003.5 13h7a1.5 1.5 0 001.5-1.5V10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </button>
+            <button onClick={exportFacturesCSV} title="Exporter factures CSV"
+              style={{ padding: "7px 13px", display: "flex", alignItems: "center", gap: "6px", border: "0.5px solid var(--border)", borderRadius: "9px", background: "transparent", color: "var(--text3)", fontSize: "12px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.borderColor = "var(--border-hover)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--text3)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M1.5 9v1A1.5 1.5 0 003 11.5h6A1.5 1.5 0 0010.5 10V9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+              Factures
+            </button>
+            <button onClick={openModal}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "9px 18px", borderRadius: "9px", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", background: "var(--accent)", color: "#FFF", border: "none" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              Nouveau client
+            </button>
+          </div>
         </div>
 
         {/* Search */}

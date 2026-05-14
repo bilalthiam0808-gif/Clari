@@ -17,14 +17,28 @@ function toProject(row: any) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toFacture(row: any) {
+  return {
+    amount: Number(row.amount),
+    status: row.status as string,
+    issuedAt: row.issued_at as string,
+  };
+}
+
 export default async function DashboardPage() {
   const cookieStore = await cookies();
   if (!verifyToken(cookieStore.get("clari_auth")?.value)) redirect("/login");
 
-  const { data } = await db
-    .from("projects")
-    .select("id, client_name, client_email, service_name, status, created_at, brief_data")
-    .order("inserted_at", { ascending: false });
+  const [{ data: projects }, { data: factures }] = await Promise.all([
+    db.from("projects").select("id, client_name, client_email, service_name, status, created_at, brief_data").order("inserted_at", { ascending: false }),
+    db.from("factures").select("amount, status, issued_at"),
+  ]);
 
-  return <DashboardClient initialProjects={(data ?? []).map(toProject)} />;
+  return (
+    <DashboardClient
+      initialProjects={(projects ?? []).map(toProject)}
+      initialFactures={(factures ?? []).map(toFacture)}
+    />
+  );
 }

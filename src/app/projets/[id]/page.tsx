@@ -386,6 +386,36 @@ export default function ProjetDetailPage() {
           })}
         </div>
 
+        {/* ── Timeline ── */}
+        {(() => {
+          const steps: { label: string; done: boolean; date?: string }[] = [
+            { label: "Projet créé", done: true, date: project.createdAt },
+            { label: "Brief reçu",  done: project.status === "Brief reçu" || project.status === "Devis envoyé" },
+            { label: "Devis envoyé", done: project.status === "Devis envoyé" },
+          ];
+          return (
+            <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "0" }}>
+              {steps.map((step, i) => (
+                <div key={step.label} style={{ display: "flex", alignItems: "center", flex: i < steps.length - 1 ? 1 : "none" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", flexShrink: 0 }}>
+                    <div style={{ width: "24px", height: "24px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: step.done ? "var(--success)" : "var(--surface2)", border: step.done ? "none" : "1.5px solid var(--border)", transition: "all 200ms" }}>
+                      {step.done
+                        ? <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 2.5" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        : <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--border)" }} />
+                      }
+                    </div>
+                    <span style={{ fontSize: "10px", fontWeight: 500, color: step.done ? "var(--text2)" : "var(--text3)", whiteSpace: "nowrap" }}>{step.label}</span>
+                    {step.date && <span style={{ fontSize: "9px", color: "var(--text3)" }}>{step.date}</span>}
+                  </div>
+                  {i < steps.length - 1 && (
+                    <div style={{ flex: 1, height: "1.5px", background: steps[i + 1].done ? "var(--success)" : "var(--border)", margin: "0 8px", marginBottom: "18px", transition: "background 200ms" }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* ── BRIEF ── */}
         {hasBrief ? (
           <>

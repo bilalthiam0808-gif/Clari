@@ -111,6 +111,25 @@ export default function ProjetsClient({
     await fetch(`/api/projects/${id}`, { method: "DELETE" });
   }
 
+  function exportCSV() {
+    const rows = [
+      ["Client", "Email", "Service", "Statut", "Montant estimé (€)", "Date"],
+      ...projects.map(p => [
+        p.clientName,
+        p.clientEmail,
+        p.serviceName,
+        p.status,
+        "",
+        p.createdAt,
+      ]),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "projets-clari.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function updateProjectStatus(id: string, status: Project["status"]) {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, status } : p));
     const res = await fetch(`/api/projects/${id}`, {
@@ -158,6 +177,13 @@ export default function ProjetsClient({
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {/* Export CSV */}
+            <button onClick={exportCSV} title="Exporter en CSV"
+              style={{ width: "34px", height: "34px", display: "flex", alignItems: "center", justifyContent: "center", border: "0.5px solid var(--border)", borderRadius: "9px", background: "transparent", color: "var(--text3)", cursor: "pointer", transition: "all 100ms" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.borderColor = "var(--border-hover)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--text3)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 10v1.5A1.5 1.5 0 003.5 13h7a1.5 1.5 0 001.5-1.5V10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </button>
             {/* Toggle liste / kanban */}
             <div style={{ display: "flex", border: "0.5px solid var(--border)", borderRadius: "9px", overflow: "hidden" }}>
               <button onClick={() => setView("list")} title="Vue liste"
