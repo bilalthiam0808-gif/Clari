@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import { toast } from "@/components/Toaster";
 
 type Option = {
   id: string;
@@ -111,6 +112,9 @@ export default function ServicesClient({ initialServices }: { initialServices: S
       if (res.ok) {
         const updated = await res.json();
         setServices(prev => prev.map(s => s.id === editingId ? updated : s));
+        toast("Service modifié");
+      } else {
+        toast("Erreur lors de la modification", "error");
       }
     } else {
       const body = { id: Date.now().toString(), name, category, basePrice, description, options: filteredOptions };
@@ -118,6 +122,9 @@ export default function ServicesClient({ initialServices }: { initialServices: S
       if (res.ok) {
         const created = await res.json();
         setServices(prev => [...prev, created]);
+        toast("Service créé");
+      } else {
+        toast("Erreur lors de la création", "error");
       }
     }
     closeModal();
@@ -127,7 +134,9 @@ export default function ServicesClient({ initialServices }: { initialServices: S
 
   async function deleteService(id: string) {
     setServices(prev => prev.filter(s => s.id !== id));
-    await fetch(`/api/services/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
+    if (res.ok) toast("Service supprimé", "info");
+    else toast("Erreur lors de la suppression", "error");
   }
 
   async function resetToDefault() {
@@ -135,7 +144,9 @@ export default function ServicesClient({ initialServices }: { initialServices: S
     const res = await fetch("/api/services/reset", { method: "POST" });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) setServices(data);
+      if (Array.isArray(data)) { setServices(data); toast("Catalogue réinitialisé", "info"); }
+    } else {
+      toast("Erreur lors de la réinitialisation", "error");
     }
   }
 

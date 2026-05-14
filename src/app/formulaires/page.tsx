@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
+import { toast } from "@/components/Toaster";
 
 type QType = "single" | "multi" | "text";
 type FQ = { id: string; question: string; type: QType; choices: string[]; placeholder?: string };
@@ -79,7 +80,6 @@ export default function FormulairesPage() {
   });
   const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<"saved" | "error" | null>(null);
   const [canUndo, setCanUndo] = useState<Record<Cat, boolean>>({ "Graphisme": false, "Motion Design": false, "Site web": false });
   const [canRedo, setCanRedo] = useState<Record<Cat, boolean>>({ "Graphisme": false, "Motion Design": false, "Site web": false });
   const undoStack = useRef<Record<Cat, FQ[][]>>({ "Graphisme": [], "Motion Design": [], "Site web": [] });
@@ -191,19 +191,17 @@ export default function FormulairesPage() {
 
   async function save() {
     setSaving(true);
-    setFeedback(null);
     try {
       const res = await fetch("/api/form-questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category: active, questions: forms[active] }),
       });
-      setFeedback(res.ok ? "saved" : "error");
+      toast(res.ok ? `Formulaire "${active}" enregistré` : "Erreur lors de l'enregistrement", res.ok ? "success" : "error");
     } catch {
-      setFeedback("error");
+      toast("Erreur lors de l'enregistrement", "error");
     } finally {
       setSaving(false);
-      setTimeout(() => setFeedback(null), 3000);
     }
   }
 
@@ -231,15 +229,6 @@ export default function FormulairesPage() {
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {feedback === "saved" && (
-              <span style={{ fontSize: "12px", color: "var(--success)", display: "flex", alignItems: "center", gap: "5px" }}>
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3L11 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Enregistré
-              </span>
-            )}
-            {feedback === "error" && (
-              <span style={{ fontSize: "12px", color: "var(--error)" }}>Erreur lors de l'enregistrement</span>
-            )}
             {/* Undo */}
             <button onClick={undo} disabled={!canUndo[active]} title="Annuler (Ctrl+Z)"
               style={{ width: "32px", height: "32px", borderRadius: "8px", border: "0.5px solid var(--border)", background: "transparent", color: canUndo[active] ? "var(--text2)" : "var(--text3)", cursor: canUndo[active] ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", opacity: canUndo[active] ? 1 : 0.35, transition: "all 100ms" }}>
