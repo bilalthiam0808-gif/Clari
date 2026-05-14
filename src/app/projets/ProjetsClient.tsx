@@ -17,7 +17,7 @@ type Project = {
   clientEmail: string;
   serviceId: string;
   serviceName: string;
-  status: "En attente" | "Brief reçu" | "Devis envoyé";
+  status: "En attente" | "Brief reçu" | "Devis envoyé" | "Signé";
   slug: string;
   createdAt: string;
 };
@@ -26,6 +26,7 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   "En attente":   { bg: "#1A1200", color: "#FAC775" },
   "Brief reçu":   { bg: "#0A1A12", color: "#5DCAA5" },
   "Devis envoyé": { bg: "#1A1A2E", color: "#CECBF6" },
+  "Signé":        { bg: "#0A1220", color: "#7DD3FC" },
 };
 
 function generateSlug(clientName: string): string {

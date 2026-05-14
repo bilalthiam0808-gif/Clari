@@ -54,6 +54,7 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   "En attente":   { bg: "#1A1200", color: "#FAC775" },
   "Brief reçu":   { bg: "#0A1A12", color: "#5DCAA5" },
   "Devis envoyé": { bg: "#1A1A2E", color: "#CECBF6" },
+  "Signé":        { bg: "#0A1220", color: "#7DD3FC" },
 };
 
 const factureStatusColors: Record<string, { bg: string; color: string }> = {

@@ -20,6 +20,8 @@ function toClient(row: any) {
     briefData: row.brief_data,
     source: row.source,
     notes: row.notes ?? null,
+    signatureName: row.signature_name ?? null,
+    signedAt: row.signed_at ?? null,
   };
 }
 

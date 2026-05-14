@@ -30,12 +30,14 @@ type Project = {
   clientEmail: string;
   serviceId: string;
   serviceName: string;
-  status: "En attente" | "Brief reçu" | "Devis envoyé";
+  status: "En attente" | "Brief reçu" | "Devis envoyé" | "Signé";
   slug: string;
   createdAt: string;
   briefData?: BriefData;
   source?: string;
   notes?: string | null;
+  signatureName?: string | null;
+  signedAt?: string | null;
 };
 
 type ServiceOption = {
@@ -106,6 +108,7 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   "En attente":   { bg: "#1A1200", color: "#FAC775" },
   "Brief reçu":   { bg: "#0A1A12", color: "#5DCAA5" },
   "Devis envoyé": { bg: "#1A1A2E", color: "#CECBF6" },
+  "Signé":        { bg: "#0A1220", color: "#7DD3FC" },
 };
 
 const categoryColors: Record<string, { bg: string; color: string }> = {
@@ -191,6 +194,7 @@ export default function ProjetDetailPage() {
       brandDesc: brief.brandDesc,
       clientNote: brief.clientNote,
       projectId: project.id,
+      slug: project.slug,
       createdAt: project.createdAt,
     };
   }
@@ -374,7 +378,7 @@ export default function ProjetDetailPage() {
         {/* Changer le statut */}
         <div className="status-selector" style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "14px 20px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px" }}>
           <span style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginRight: "4px" }}>Statut</span>
-          {(["En attente", "Brief reçu", "Devis envoyé"] as Project["status"][]).map(s => {
+          {(["En attente", "Brief reçu", "Devis envoyé", "Signé"] as Project["status"][]).map(s => {
             const col = statusColors[s];
             const isActive = project.status === s;
             return (
@@ -388,10 +392,12 @@ export default function ProjetDetailPage() {
 
         {/* ── Timeline ── */}
         {(() => {
+          const isSigned = project.status === "Signé";
           const steps: { label: string; done: boolean; date?: string }[] = [
-            { label: "Projet créé", done: true, date: project.createdAt },
-            { label: "Brief reçu",  done: project.status === "Brief reçu" || project.status === "Devis envoyé" },
-            { label: "Devis envoyé", done: project.status === "Devis envoyé" },
+            { label: "Projet créé",  done: true, date: project.createdAt },
+            { label: "Brief reçu",   done: project.status === "Brief reçu" || project.status === "Devis envoyé" || isSigned },
+            { label: "Devis envoyé", done: project.status === "Devis envoyé" || isSigned },
+            { label: "Signé",        done: isSigned, date: project.signedAt ?? undefined },
           ];
           return (
             <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "0" }}>
@@ -544,9 +550,37 @@ export default function ProjetDetailPage() {
             )}
 
             {project.status === "Devis envoyé" && (
-              <div style={{ marginBottom: "12px", padding: "12px 16px", borderRadius: "10px", background: "rgba(29,158,117,0.08)", border: "0.5px solid rgba(29,158,117,0.3)", display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "#1D9E75" }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#1D9E75" strokeWidth="1.2"/><path d="M5 8l2 2 4-4" stroke="#1D9E75" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Devis déjà envoyé à {project.clientEmail}
+              <div style={{ marginBottom: "12px", padding: "12px 16px", borderRadius: "10px", background: "rgba(29,158,117,0.08)", border: "0.5px solid rgba(29,158,117,0.3)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", fontSize: "13px", color: "#1D9E75" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#1D9E75" strokeWidth="1.2"/><path d="M5 8l2 2 4-4" stroke="#1D9E75" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Devis envoyé à {project.clientEmail}
+                </div>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/signer/${project.slug}`); toast("Lien de signature copié", "info"); }}
+                  style={{ background: "rgba(29,158,117,0.15)", color: "#1D9E75", border: "0.5px solid rgba(29,158,117,0.4)", borderRadius: "7px", padding: "4px 10px", fontSize: "11px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                  Copier lien signature
+                </button>
+              </div>
+            )}
+
+            {project.status === "Signé" && project.signatureName && (
+              <div style={{ marginBottom: "12px", padding: "16px 20px", borderRadius: "12px", background: "rgba(125,211,252,0.06)", border: "0.5px solid rgba(125,211,252,0.3)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="#7DD3FC" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#7DD3FC", textTransform: "uppercase", letterSpacing: "0.06em" }}>Devis signé</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <div>
+                    <div style={{ fontSize: "10px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Signé par</div>
+                    <div style={{ fontSize: "13px", fontWeight: 500, color: "#ccc" }}>{project.signatureName}</div>
+                  </div>
+                  {project.signedAt && (
+                    <div>
+                      <div style={{ fontSize: "10px", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Le</div>
+                      <div style={{ fontSize: "13px", color: "#aaa" }}>{new Date(project.signedAt).toLocaleString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
