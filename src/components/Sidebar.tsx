@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -20,7 +20,7 @@ const navItems = [
     ),
   },
   {
-    label: "Mes services",
+    label: "Services",
     href: "/services",
     icon: (
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -86,6 +86,29 @@ export default function Sidebar() {
   const router = useRouter();
   const [newBriefs, setNewBriefs] = useState(0);
   const { theme, toggle } = useTheme("dark", "clari_admin_theme");
+  const mobileNavRef = useRef<HTMLElement>(null);
+
+  // Scroll-hide: se cache quand on descend, réapparaît quand on remonte
+  useEffect(() => {
+    const scroller = document.querySelector(".admin-main") as HTMLElement | null;
+    if (!scroller) return;
+    let lastY = 0;
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = scroller!.scrollTop;
+        if (mobileNavRef.current) {
+          mobileNavRef.current.style.transform = y > lastY && y > 80 ? "translateY(110%)" : "translateY(0)";
+        }
+        lastY = y;
+        ticking = false;
+      });
+    }
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    return () => scroller.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     fetch("/api/projects")
@@ -227,7 +250,7 @@ export default function Sidebar() {
       </aside>
 
       {/* ── Mobile bottom nav ── */}
-      <nav className="bottom-nav">
+      <nav ref={mobileNavRef} className="bottom-nav">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -238,13 +261,12 @@ export default function Sidebar() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "4px",
-                padding: "6px 12px",
+                gap: "3px",
+                padding: "5px 4px",
                 borderRadius: "8px",
                 textDecoration: "none",
                 color: isActive ? "var(--accent-light)" : "var(--text3)",
                 transition: "color 100ms",
-                minWidth: "56px",
                 position: "relative",
               }}
             >
@@ -265,7 +287,7 @@ export default function Sidebar() {
                   </span>
                 )}
               </span>
-              <span style={{ fontSize: "10px", fontWeight: isActive ? 500 : 400, letterSpacing: "0.02em" }}>
+              <span style={{ fontSize: "9px", fontWeight: isActive ? 600 : 400, letterSpacing: "0.01em", textAlign: "center", lineHeight: 1.2 }}>
                 {item.label}
               </span>
             </Link>
@@ -276,11 +298,11 @@ export default function Sidebar() {
         <button
           onClick={toggle}
           style={{
-            display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-            padding: "6px 12px", borderRadius: "8px",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "3px",
+            padding: "5px 4px", borderRadius: "8px",
             background: "none", border: "none",
             color: "var(--text3)", cursor: "pointer",
-            minWidth: "56px", fontFamily: "inherit",
+            fontFamily: "inherit",
           }}
         >
           {theme === "dark" ? (
@@ -293,22 +315,22 @@ export default function Sidebar() {
               <path d="M7.5 1.875a3.75 3.75 0 0 0 5.625 5.625 5.625 5.625 0 1 1-5.625-5.625Z" fill="currentColor"/>
             </svg>
           )}
-          <span style={{ fontSize: "10px", letterSpacing: "0.02em" }}>{theme === "dark" ? "Clair" : "Sombre"}</span>
+          <span style={{ fontSize: "9px", letterSpacing: "0.01em" }}>{theme === "dark" ? "Clair" : "Sombre"}</span>
         </button>
 
         {/* Logout mobile */}
         <button
           onClick={logout}
           style={{
-            display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-            padding: "6px 12px", borderRadius: "8px",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "3px",
+            padding: "5px 4px", borderRadius: "8px",
             background: "none", border: "none",
             color: "var(--text3)", cursor: "pointer",
-            minWidth: "56px", fontFamily: "inherit",
+            fontFamily: "inherit",
           }}
         >
           {logoutIcon}
-          <span style={{ fontSize: "10px", letterSpacing: "0.02em" }}>Sortir</span>
+          <span style={{ fontSize: "9px", letterSpacing: "0.01em" }}>Sortir</span>
         </button>
       </nav>
     </>
