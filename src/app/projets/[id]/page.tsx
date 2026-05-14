@@ -101,6 +101,7 @@ export default function ProjetDetailPage() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [service, setService] = useState<Service | null>(null);
+  const [dbQuestions, setDbQuestions] = useState<Record<string, { question: string }[]>>({});
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
@@ -115,6 +116,10 @@ export default function ProjetDetailPage() {
         if (svc) setService(svc);
       })
       .catch(() => setNotFound(true));
+    fetch("/api/form-questions")
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setDbQuestions(data))
+      .catch(() => {});
   }, [id]);
 
   async function updateStatus(newStatus: Project["status"]) {
@@ -225,7 +230,11 @@ export default function ProjetDetailPage() {
   const hasBrief = !!brief;
   const status = statusColors[project.status];
   const catColor = getCategoryColor(brief?.serviceCategory || "");
-  const styleQuestions = brief?.serviceCategory ? (STYLE_QUESTIONS[brief.serviceCategory] || []) : [];
+  const styleQuestions = brief?.serviceCategory
+    ? (dbQuestions[brief.serviceCategory]?.length
+        ? dbQuestions[brief.serviceCategory]
+        : (STYLE_QUESTIONS[brief.serviceCategory] || []))
+    : [];
 
   // Résoudre les options sélectionnées
   const resolvedOptions = service && brief?.selectedOptions
