@@ -102,7 +102,7 @@ export default function ClientForm() {
   const [dbQuestions, setDbQuestions] = useState<Record<string, { question: string; type: "single" | "multi"; choices: string[] }[]>>({});
   const [notFound, setNotFound] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
 
   // Étape 1 — Service sélectionné
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -340,7 +340,7 @@ export default function ClientForm() {
 
         {/* Right: stepper + toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          {step > 0 && <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {STEP_LABELS.map((label, i) => {
             const num = i + 1;
             const isDone = num < step;
@@ -369,13 +369,78 @@ export default function ClientForm() {
               </div>
             );
           })}
-          </div>
+          </div>}
           <ThemeToggle theme={theme} onToggle={toggle} />
         </div>
       </div>
 
       {/* Contenu */}
       <div style={{ maxWidth: "620px", margin: "0 auto", padding: "40px 24px 140px" }}>
+
+        {/* ── ÉTAPE 0 — Accueil ──────────────────────────────────────────────── */}
+        {step === 0 && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingTop: "24px" }}>
+            {/* Avatar */}
+            <div style={{
+              width: "76px", height: "76px", borderRadius: "22px",
+              background: "linear-gradient(135deg, #7F77DD 0%, #9F77DD 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              marginBottom: "20px",
+              boxShadow: "0 8px 32px rgba(127,119,221,0.4)",
+            }}>
+              <span style={{ fontSize: "24px", fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>BT</span>
+            </div>
+
+            {/* Identité */}
+            <h1 style={{ fontSize: "22px", fontWeight: 700, color: "var(--text)", marginBottom: "4px" }}>Billale Thiam</h1>
+            <p style={{ fontSize: "12px", color: "var(--accent-light)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "36px" }}>Graphisme · Motion Design · Sites web</p>
+
+            {/* Message */}
+            <div style={{
+              background: "var(--surface)",
+              border: "0.5px solid var(--border)",
+              borderRadius: "16px",
+              padding: "24px 28px",
+              marginBottom: "28px",
+              width: "100%",
+              textAlign: "left",
+            }}>
+              <p style={{ fontSize: "17px", fontWeight: 600, color: "var(--text)", marginBottom: "14px" }}>
+                Bonjour {project.clientName} 👋
+              </p>
+              <p style={{ fontSize: "13px", color: "var(--text2)", lineHeight: 1.75, margin: 0 }}>
+                J&apos;ai préparé ce formulaire pour mieux comprendre votre projet et vous soumettre un devis vraiment adapté à vos besoins.
+              </p>
+              <p style={{ fontSize: "13px", color: "var(--text2)", lineHeight: 1.75, marginTop: "10px", marginBottom: 0 }}>
+                Comptez <strong style={{ color: "var(--text)" }}>5 à 10 minutes</strong> — plus vous êtes précis, plus votre devis sera juste.
+              </p>
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={() => setStep(1)}
+              style={{
+                width: "100%",
+                background: "#7F77DD",
+                color: "#fff",
+                border: "none",
+                borderRadius: "12px",
+                padding: "15px 32px",
+                fontSize: "15px",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                letterSpacing: "0.01em",
+              }}
+            >
+              Commencer le brief →
+            </button>
+
+            <p style={{ fontSize: "11px", color: "var(--text3)", marginTop: "14px" }}>
+              Réponses confidentielles · Aucun engagement
+            </p>
+          </div>
+        )}
 
         {/* ── ÉTAPE 1 — Choix du service ─────────────────────────────────────── */}
         {step === 1 && (
