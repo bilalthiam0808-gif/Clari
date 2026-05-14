@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { clientEmail, clientName, serviceName, total, projectId, slug,
+  const { clientEmail, clientName, serviceName, total, projectId,
     clientPhone, clientCity, serviceCategory, basePrice,
     selectedOptions, brandName, sector, target, brandDesc, clientNote, createdAt } = body;
 
@@ -41,9 +41,6 @@ export async function POST(req: NextRequest) {
   const safeTotal   = Number(total) || 0;
   const safeId      = escapeHtml(projectId);
   const safeFile    = String(clientName).toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 40);
-  const baseUrl     = process.env.NEXT_PUBLIC_APP_URL || "https://clari.app";
-  const signLink    = slug ? `${baseUrl}/signer/${escapeHtml(slug)}` : null;
-
   const { data, error } = await resend.emails.send({
     from: process.env.FROM_EMAIL || "Clari <onboarding@resend.dev>",
     to: clientEmail as string,
@@ -56,11 +53,6 @@ export async function POST(req: NextRequest) {
           <div style="font-size:13px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Total estimé</div>
           <div style="font-size:32px;font-weight:700;color:#7F77DD;">${safeTotal.toLocaleString("fr-FR")} €</div>
         </div>
-        ${signLink ? `
-        <div style="background:#f0faf6;border-left:3px solid #1D9E75;border-radius:0 8px 8px 0;padding:14px 18px;margin:20px 0;">
-          <p style="margin:0 0 10px;font-size:13px;color:#555;font-weight:600;">Accepter et signer le devis en ligne</p>
-          <a href="${signLink}" style="display:inline-block;background:#1D9E75;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;">&rarr; Signer le devis</a>
-        </div>` : ""}
         <p style="color:#555;">N&rsquo;hésitez pas à me contacter pour toute question ou ajustement.</p>
         <p style="color:#555;margin-top:32px;">Cordialement</p>
         <hr style="border:none;border-top:1px solid #eee;margin:32px 0;"/>
