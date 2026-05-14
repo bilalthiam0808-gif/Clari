@@ -19,6 +19,7 @@ function toClient(row: any) {
     createdAt: row.created_at,
     briefData: row.brief_data,
     source: row.source,
+    notes: row.notes ?? null,
   };
 }
 
@@ -54,6 +55,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const patch: Record<string, unknown> = {};
   if (body.status !== undefined) patch.status = body.status;
   if (body.briefData !== undefined) patch.brief_data = body.briefData;
+  if (body.notes !== undefined) patch.notes = body.notes;
 
   const { data, error } = await db.from("projects").update(patch).eq("id", id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

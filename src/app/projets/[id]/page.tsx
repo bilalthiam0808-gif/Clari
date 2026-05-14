@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "@/components/Toaster";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,7 @@ type Project = {
   createdAt: string;
   briefData?: BriefData;
   source?: string;
+  notes?: string | null;
 };
 
 type ServiceOption = {
@@ -131,12 +133,15 @@ export default function ProjetDetailPage() {
   const [sending, setSending] = useState(false);
   const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
   const [previewing, setPreviewing] = useState(false);
+  const [notes, setNotes] = useState("");
+  const notesSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch(`/api/projects/${id}`)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(({ project, service: svc }) => {
         setProject(project);
+        setNotes(project.notes ?? "");
         if (svc) setService(svc);
       })
       .catch(() => setNotFound(true));
@@ -232,6 +237,21 @@ export default function ProjetDetailPage() {
     } finally {
       setPreviewing(false);
     }
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+    if (notesSaveTimer.current) clearTimeout(notesSaveTimer.current);
+    notesSaveTimer.current = setTimeout(async () => {
+      if (!project) return;
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: value }),
+      });
+      if (res.ok) toast("Note sauvegardée", "info");
+      else toast("Erreur de sauvegarde", "error");
+    }, 1200);
   }
 
   if (notFound) return (
@@ -581,6 +601,7 @@ export default function ProjetDetailPage() {
                 </div>
               </div>
             )}
+
           </>
         ) : (
           /* Pas encore de brief */
@@ -599,6 +620,29 @@ export default function ProjetDetailPage() {
             </button>
           </div>
         )}
+
+        {/* Note interne — toujours visible */}
+        <div style={sectionStyle}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+            <div style={sectionTitle}>Note interne</div>
+            <span style={{ fontSize: "10px", color: "var(--text3)", padding: "1px 7px", borderRadius: "4px", background: "var(--surface2)", border: "0.5px solid var(--border)" }}>Admin uniquement</span>
+          </div>
+          <textarea
+            value={notes}
+            onChange={e => handleNotesChange(e.target.value)}
+            placeholder="Contexte interne, négociations, contraintes, feedback oral du client…"
+            rows={3}
+            style={{
+              width: "100%", background: "var(--surface2)", border: "0.5px solid var(--border)",
+              borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "var(--text)",
+              fontFamily: "inherit", outline: "none", resize: "vertical", lineHeight: 1.6,
+              transition: "border-color 150ms",
+            }}
+            onFocus={e => (e.currentTarget.style.borderColor = "rgba(127,119,221,0.5)")}
+            onBlur={e => (e.currentTarget.style.borderColor = "var(--border)")}
+          />
+          <p style={{ fontSize: "11px", color: "var(--text3)", marginTop: "6px" }}>Sauvegardée automatiquement</p>
+        </div>
       </div>
     </div>
   );
