@@ -150,6 +150,7 @@ function generateSlug(name: string): string {
 export default function BriefPage() {
   const { theme, toggle } = useTheme("light", "clari_client_theme");
   const [allServices, setAllServices] = useState<Service[]>([]);
+  const [dbQuestions, setDbQuestions] = useState<Record<string, StyleQuestion[]>>({});
   const [submitted, setSubmitted] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -182,6 +183,10 @@ export default function BriefPage() {
     fetch("/api/brief")
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setAllServices(data); });
+    fetch("/api/form-questions")
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setDbQuestions(data))
+      .catch(() => {});
   }, []);
 
   // Reset options & style quand le service change
@@ -305,7 +310,7 @@ export default function BriefPage() {
     ? getCategoryColor(selectedService.category)
     : { bg: "#1A1A2E", color: "#CECBF6" };
   const styleQuestions = selectedService
-    ? (STYLE_QUESTIONS[selectedService.category as Category] || [])
+    ? (dbQuestions[selectedService.category]?.length ? dbQuestions[selectedService.category] : STYLE_QUESTIONS[selectedService.category as Category]) || []
     : [];
   const serviceOptions = selectedService?.options || [];
 

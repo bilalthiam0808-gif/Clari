@@ -99,6 +99,7 @@ export default function ClientForm() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [allServices, setAllServices] = useState<Service[]>([]);
+  const [dbQuestions, setDbQuestions] = useState<Record<string, { question: string; type: "single" | "multi"; choices: string[] }[]>>({});
   const [notFound, setNotFound] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [step, setStep] = useState(1);
@@ -142,6 +143,10 @@ export default function ClientForm() {
         }
       })
       .catch(() => setNotFound(true));
+    fetch("/api/form-questions")
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setDbQuestions(data))
+      .catch(() => {});
   }, [slug]);
 
   // ─── Calcul du total ───────────────────────────────────────────────────────
@@ -312,7 +317,9 @@ export default function ClientForm() {
   const STEP_LABELS = ["Prestation", "Contexte", "Style", "Options", "Contact"];
   const category = selectedService?.category;
   const catColor = category ? categoryColors[category] : { bg: "#1A1A2E", color: "#CECBF6" };
-  const styleQuestions = category ? (STYLE_QUESTIONS[category] || []) : [];
+  const styleQuestions = category
+    ? (dbQuestions[category]?.length ? dbQuestions[category] : STYLE_QUESTIONS[category]) || []
+    : [];
   const serviceOptions = selectedService?.options || [];
 
   // ─── Rendu ─────────────────────────────────────────────────────────────────
