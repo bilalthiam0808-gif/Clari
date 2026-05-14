@@ -51,26 +51,50 @@ type Service = {
   options: ServiceOption[];
 };
 
-// ─── Questions de style par catégorie ────────────────────────────────────────
+// ─── Questions de style par catégorie (doit rester aligné avec /brief et /b/[slug]) ───
 
-const STYLE_QUESTIONS: Record<string, { question: string; type: string; choices: string[] }[]> = {
+const STYLE_QUESTIONS: Record<string, { question: string }[]> = {
   "Graphisme": [
-    { question: "Quel type de logo souhaitez-vous ?", type: "single", choices: [] },
-    { question: "Quel univers visuel vous correspond ?", type: "multi", choices: [] },
-    { question: "Quelle direction typographique ?", type: "single", choices: [] },
-    { question: "Quelle palette de couleurs vous attire ?", type: "multi", choices: [] },
+    { question: "Quel type de logo souhaitez-vous ?" },
+    { question: "Quel univers visuel vous correspond ?" },
+    { question: "Quelle direction typographique ?" },
+    { question: "Quelle palette de couleurs vous attire ?" },
   ],
   "Motion Design": [
-    { question: "Quel style d'animation ?", type: "single", choices: [] },
-    { question: "Quelle ambiance sonore ?", type: "single", choices: [] },
-    { question: "Quelle durée approximative ?", type: "single", choices: [] },
-    { question: "Quel univers visuel vous correspond ?", type: "multi", choices: [] },
+    { question: "Quel style d'animation ?" },
+    { question: "Quelle ambiance sonore ?" },
+    { question: "Quelle durée approximative ?" },
+    { question: "Quel univers visuel vous correspond ?" },
   ],
   "Site web": [
-    { question: "Combien de pages estimez-vous avoir besoin ?", type: "single", choices: [] },
-    { question: "Quel univers visuel vous correspond ?", type: "single", choices: [] },
-    { question: "Quelle plateforme préférez-vous ?", type: "single", choices: [] },
-    { question: "Avez-vous besoin d'une boutique en ligne ?", type: "single", choices: [] },
+    { question: "Quels sont les objectifs de ce site ?" },
+    { question: "URL de votre site actuel (si existant)" },
+    { question: "Vos réseaux sociaux actifs (URLs ou @)" },
+    { question: "Avez-vous déjà un site existant ?" },
+    { question: "Citez 3 mots-clés qui définissent l'image de votre marque" },
+    { question: "Votre client idéal s'adresse à…" },
+    { question: "Tranche d'âge principale de votre cible" },
+    { question: "Principal frein à l'achat de votre client" },
+    { question: "Citez 3 concurrents — ce que vous aimez et n'aimez pas" },
+    { question: "Pourquoi un client vous choisirait-il VOUS plutôt qu'un autre ?" },
+    { question: "Quelle ambiance visuelle correspond à votre marque ?" },
+    { question: "Quel niveau d'animation souhaitez-vous ?" },
+    { question: "Références visuelles — sites qui vous inspirent" },
+    { question: "Quel type de site préférez-vous ?" },
+    { question: "Le site doit-il être en plusieurs langues ?" },
+    { question: "Quelles pages souhaitez-vous ?" },
+    { question: "Quels modules interactifs souhaitez-vous ?" },
+    { question: "Avez-vous rédigé les textes pour le site ?" },
+    { question: "Avez-vous des visuels (images) pour le site ?" },
+    { question: "Gestion du site après lancement" },
+    { question: "Quelle plateforme préférez-vous ?" },
+    { question: "Quelles fonctionnalités souhaitez-vous ?" },
+    { question: "Avez-vous déjà un nom de domaine ?" },
+    { question: "Avez-vous déjà un hébergeur ?" },
+    { question: "Délai idéal pour le projet" },
+    { question: "Souhaitez-vous un forfait de maintenance mensuelle ?" },
+    { question: "Votre enveloppe budgétaire" },
+    { question: "Y a-t-il une envie particulière, un détail ou une fonctionnalité magique dont nous n'avons pas parlé ?" },
   ],
 };
 
@@ -518,7 +542,7 @@ export default function ProjetDetailPage() {
             {/* Style visuel */}
             {brief.styleAnswers && Object.keys(brief.styleAnswers).length > 0 && (
               <div style={sectionStyle}>
-                <div style={sectionTitle}>Style visuel</div>
+                <div style={sectionTitle}>Composition</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                   {Object.entries(brief.styleAnswers).map(([qIndex, answers]) => {
                     if (!answers || answers.length === 0) return null;
