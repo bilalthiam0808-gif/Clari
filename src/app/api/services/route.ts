@@ -46,7 +46,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json((seeded ?? []).map(toClient));
   }
 
-  return NextResponse.json(data.map(toClient));
+  return NextResponse.json(data.map(toClient), {
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+  });
 }
 
 export async function POST(req: NextRequest) {

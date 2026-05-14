@@ -17,7 +17,9 @@ export async function GET() {
   for (const row of data ?? []) {
     result[row.category] = row.questions;
   }
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+  });
 }
 
 export async function POST(req: NextRequest) {

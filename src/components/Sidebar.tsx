@@ -119,7 +119,8 @@ export default function Sidebar() {
         }
       })
       .catch(() => {});
-  }, [pathname]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function logout() {
     await fetch("/api/auth/login", { method: "DELETE" });

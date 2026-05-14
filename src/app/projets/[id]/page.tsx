@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { generateDevisPDF } from "@/lib/generateDevis";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -136,19 +135,15 @@ export default function ProjetDetailPage() {
     }
   }
 
-  async function handleSendDevis() {
-    if (!project || !project.briefData) return;
-    setSending(true);
-    setSendStatus("idle");
-
+  function buildDevisPayload() {
+    if (!project?.briefData) return null;
     const brief = project.briefData;
     const resolvedOpts = service && brief.selectedOptions
       ? service.options.filter(o => brief.selectedOptions?.includes(o.id))
       : [];
-
-    const pdfBase64 = generateDevisPDF({
-      clientName: project.clientName,
+    return {
       clientEmail: project.clientEmail,
+      clientName: project.clientName,
       clientPhone: brief.clientPhone,
       clientCity: brief.clientCity,
       serviceName: brief.selectedService || project.serviceName,
@@ -163,30 +158,22 @@ export default function ProjetDetailPage() {
       clientNote: brief.clientNote,
       projectId: project.id,
       createdAt: project.createdAt,
-    });
+    };
+  }
 
+  async function handleSendDevis() {
+    const payload = buildDevisPayload();
+    if (!payload) return;
+    setSending(true);
+    setSendStatus("idle");
     try {
       const res = await fetch("/api/send-devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientEmail: project.clientEmail,
-          clientName: project.clientName,
-          serviceName: brief.selectedService || project.serviceName,
-          total: brief.totalEstime ?? 0,
-          pdfBase64,
-          projectId: project.id,
-        }),
+        body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        console.error("Erreur envoi email:", err);
-        setSendStatus("error");
-      } else {
-        setSendStatus("success");
-        updateStatus("Devis envoyé");
-      }
+      if (!res.ok) { setSendStatus("error"); }
+      else { setSendStatus("success"); updateStatus("Devis envoyé"); }
     } catch {
       setSendStatus("error");
     } finally {
@@ -194,32 +181,18 @@ export default function ProjetDetailPage() {
     }
   }
 
-  function previewDevis() {
-    if (!project?.briefData) return;
+  async function previewDevis() {
+    const payload = buildDevisPayload();
+    if (!payload) return;
     setPreviewing(true);
     try {
-      const brief = project.briefData;
-      const resolvedOpts = service && brief.selectedOptions
-        ? service.options.filter(o => brief.selectedOptions?.includes(o.id))
-        : [];
-      const pdfBase64 = generateDevisPDF({
-        clientName: project.clientName,
-        clientEmail: project.clientEmail,
-        clientPhone: brief.clientPhone,
-        clientCity: brief.clientCity,
-        serviceName: brief.selectedService || project.serviceName,
-        serviceCategory: brief.serviceCategory,
-        basePrice: service ? parseFloat(service.basePrice) : undefined,
-        selectedOptions: resolvedOpts,
-        total: brief.totalEstime ?? 0,
-        brandName: brief.brandName,
-        sector: brief.sector,
-        target: brief.target,
-        brandDesc: brief.brandDesc,
-        clientNote: brief.clientNote,
-        projectId: project.id,
-        createdAt: project.createdAt,
+      const res = await fetch("/api/preview-devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+      if (!res.ok) return;
+      const { pdfBase64 } = await res.json();
       const bytes = atob(pdfBase64);
       const uint8 = new Uint8Array(bytes.length);
       for (let i = 0; i < bytes.length; i++) uint8[i] = bytes.charCodeAt(i);
