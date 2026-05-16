@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/lib/supabase-admin";
 
-export async function GET(req: NextRequest) {
-  if (!verifyToken(req.cookies.get("clari_auth")?.value)) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
-
+export async function GET() {
   const { data, error } = await db.from("settings").select("*").eq("id", "main").single();
   if (error && error.code !== "PGRST116") {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -28,6 +28,7 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
   const [logoUrl, setLogoUrl] = useState<string>(initialData.logo_url ?? "");
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showLogoModal, setShowLogoModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function set(field: keyof ProfileData, value: string) {
@@ -99,6 +100,50 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg)" }}>
+
+      {/* Modal logo */}
+      {showLogoModal && logoUrl && (
+        <div
+          onClick={() => setShowLogoModal(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 100,
+            background: "rgba(0,0,0,0.75)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            backdropFilter: "blur(4px)",
+            cursor: "zoom-out",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "var(--surface)",
+              borderRadius: "16px",
+              padding: "24px",
+              maxWidth: "480px",
+              width: "calc(100% - 48px)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "16px",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoUrl}
+              alt="Logo"
+              style={{ maxWidth: "100%", maxHeight: "360px", objectFit: "contain", borderRadius: "8px" }}
+            />
+            <button
+              onClick={() => setShowLogoModal(false)}
+              style={{
+                padding: "8px 20px", borderRadius: "8px",
+                border: "0.5px solid var(--border)",
+                background: "transparent", color: "var(--text2)",
+                fontSize: "13px", cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
       <Sidebar />
       <main className="admin-main" style={{ flex: 1, padding: "32px 28px", overflowY: "auto" }}>
         <div style={{ maxWidth: "640px" }}>
@@ -123,7 +168,7 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
             <span style={labelStyle}>Logo</span>
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <div
-                onClick={() => logoUrl && window.open(logoUrl, "_blank")}
+                onClick={() => logoUrl && setShowLogoModal(true)}
                 style={{
                   width: "64px", height: "64px",
                   borderRadius: "10px",
