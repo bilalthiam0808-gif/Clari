@@ -239,7 +239,7 @@ export default function Sidebar() {
             </div>
             <div>
               <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)" }}>
-                {[profile.prenom, profile.nom].filter(Boolean).join(" ") || "Mon profil"}
+                {[profile.prenom, profile.nom].filter(Boolean).join(" ") || "Billale Thiam"}
               </div>
               <div style={{ fontSize: "11px", color: "var(--text3)" }}>Admin</div>
             </div>

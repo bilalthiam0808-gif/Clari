@@ -122,14 +122,20 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
           }}>
             <span style={labelStyle}>Logo</span>
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <div style={{
-                width: "64px", height: "64px",
-                borderRadius: "10px",
-                border: "0.5px solid var(--border)",
-                background: "var(--bg)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                overflow: "hidden", flexShrink: 0,
-              }}>
+              <div
+                onClick={() => logoUrl && window.open(logoUrl, "_blank")}
+                style={{
+                  width: "64px", height: "64px",
+                  borderRadius: "10px",
+                  border: "0.5px solid var(--border)",
+                  background: "var(--bg)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  overflow: "hidden", flexShrink: 0,
+                  cursor: logoUrl ? "zoom-in" : "default",
+                  transition: "opacity 100ms",
+                }}
+                title={logoUrl ? "Cliquer pour voir en grand" : undefined}
+              >
                 {logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={logoUrl} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />

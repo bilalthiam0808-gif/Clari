@@ -156,6 +156,7 @@ export default function BriefPage() {
   const [dbQuestions, setDbQuestions] = useState<Record<string, StyleQuestion[]>>({});
   const [submitted, setSubmitted] = useState(false);
   const [step, setStep] = useState(0);
+  const [profileLogoUrl, setProfileLogoUrl] = useState<string>("");
 
   // Étape 1 — Sélection multi-services
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -184,6 +185,10 @@ export default function BriefPage() {
     fetch("/api/form-questions")
       .then(r => r.ok ? r.json() : {})
       .then(data => setDbQuestions(data))
+      .catch(() => {});
+    fetch("/api/settings")
+      .then(r => r.ok ? r.json() : {})
+      .then((d: { logo_url?: string }) => { if (d.logo_url) setProfileLogoUrl(d.logo_url); })
       .catch(() => {});
   }, []);
 
@@ -455,13 +460,20 @@ export default function BriefPage() {
         {step === 0 && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingTop: "24px" }}>
             <div style={{
-              width: "76px", height: "76px", borderRadius: "22px",
-              background: "linear-gradient(135deg, #7F77DD 0%, #9F77DD 100%)",
+              width: "76px", height: "76px", borderRadius: "18px",
+              background: profileLogoUrl ? "transparent" : "linear-gradient(135deg, #7F77DD 0%, #9F77DD 100%)",
               display: "flex", alignItems: "center", justifyContent: "center",
               marginBottom: "20px",
               boxShadow: "0 8px 32px rgba(127,119,221,0.4)",
+              overflow: "hidden",
+              border: profileLogoUrl ? "0.5px solid var(--border)" : "none",
             }}>
-              <span style={{ fontSize: "24px", fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>BT</span>
+              {profileLogoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={profileLogoUrl} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              ) : (
+                <span style={{ fontSize: "24px", fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>BT</span>
+              )}
             </div>
 
             <h1 style={{ fontSize: "22px", fontWeight: 700, color: "var(--text)", marginBottom: "4px" }}>Billale Thiam</h1>
