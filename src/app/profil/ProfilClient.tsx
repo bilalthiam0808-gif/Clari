@@ -186,7 +186,6 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
                   <img
                     src={logoUrl}
                     alt=""
-                    onError={() => setLogoUrl("")}
                     style={{ width: "100%", height: "100%", objectFit: "contain" }}
                   />
                 ) : (

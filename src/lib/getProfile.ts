@@ -32,14 +32,15 @@ export async function getProfileForPDF(): Promise<ProfileData | undefined> {
     logo_url:  data.logo_url ?? undefined,
   };
 
-  if (data.logo_url) {
+  const logoPath = data.logo_path as string | undefined;
+  if (logoPath) {
     try {
-      const resp = await fetch(data.logo_url);
-      if (resp.ok) {
-        const buffer = await resp.arrayBuffer();
+      const { data: blob } = await db.storage.from("logos").download(logoPath);
+      if (blob) {
+        const buffer = await blob.arrayBuffer();
         profile.logoBase64 = Buffer.from(buffer).toString("base64");
-        const ct = resp.headers.get("content-type") ?? "";
-        profile.logoFormat = MIME_TO_FORMAT[ct.split(";")[0].trim()] ?? extToFormat(data.logo_url);
+        const ct = blob.type ?? "";
+        profile.logoFormat = MIME_TO_FORMAT[ct.split(";")[0].trim()] ?? extToFormat(logoPath);
       }
     } catch {
       // logo optional — continue without it
