@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { verifyToken } from "@/lib/auth";
 import { generateDevisPDF } from "@/lib/generateDevis";
+import { getProfileForPDF } from "@/lib/getProfile";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -26,6 +27,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
   }
 
+  const profile = await getProfileForPDF();
+
   // Generate PDF server-side — jsPDF never shipped to the browser
   const pdfBase64 = generateDevisPDF({
     clientName, clientEmail, clientPhone, clientCity,
@@ -34,7 +37,7 @@ export async function POST(req: NextRequest) {
     total: Number(total) || 0,
     brandName, sector, target, brandDesc, clientNote,
     projectId, createdAt,
-  });
+  }, profile);
 
   const safeName    = escapeHtml(clientName);
   const safeService = escapeHtml(serviceName);

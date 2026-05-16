@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { generateDevisPDF } from "@/lib/generateDevis";
+import { getProfileForPDF } from "@/lib/getProfile";
 
 export async function POST(req: NextRequest) {
   if (!verifyToken(req.cookies.get("clari_auth")?.value)) {
@@ -17,6 +18,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
   }
 
+  const profile = await getProfileForPDF();
+
   const pdfBase64 = generateDevisPDF({
     clientName, clientEmail, clientPhone, clientCity,
     serviceName, serviceCategory, basePrice,
@@ -24,7 +27,7 @@ export async function POST(req: NextRequest) {
     total: Number(total) || 0,
     brandName, sector, target, brandDesc, clientNote,
     projectId, createdAt,
-  });
+  }, profile);
 
   return NextResponse.json({ pdfBase64 });
 }

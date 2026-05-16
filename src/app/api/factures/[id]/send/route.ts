@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { db } from "@/lib/supabase-admin";
 import { verifyToken } from "@/lib/auth";
 import { generateFacturePDF } from "@/lib/generateFacture";
+import { getProfileForPDF } from "@/lib/getProfile";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -33,6 +34,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
   }
 
+  const profile = await getProfileForPDF();
+
   const pdfBase64 = generateFacturePDF({
     factureId:   facture.id,
     clientName:  facture.client_name,
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     issuedAt:    facture.issued_at,
     dueAt:       facture.due_at,
     notes:       facture.notes,
-  });
+  }, profile);
 
   const ref = facture.id.replace(/-/g, "").slice(0, 8).toUpperCase();
   const safeName    = esc(facture.client_name);

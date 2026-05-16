@@ -25,7 +25,20 @@ type DevisData = {
   createdAt: string;
 };
 
-export function generateDevisPDF(data: DevisData): string {
+export type ProfileData = {
+  nom?: string;
+  prenom?: string;
+  email_pro?: string;
+  telephone?: string;
+  adresse?: string;
+  siret?: string;
+  site_web?: string;
+  logo_url?: string;
+  logoBase64?: string;
+  logoFormat?: string;
+};
+
+export function generateDevisPDF(data: DevisData, profile?: ProfileData): string {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210;
   const margin = 20;
@@ -36,6 +49,8 @@ export function generateDevisPDF(data: DevisData): string {
   const dark = [15, 15, 15] as [number, number, number];
   const gray = [100, 100, 100] as [number, number, number];
   const lightGray = [240, 240, 240] as [number, number, number];
+
+  const hasProfile = !!(profile?.prenom || profile?.nom);
 
   // ── Header background
   doc.setFillColor(...accent);
@@ -53,42 +68,121 @@ export function generateDevisPDF(data: DevisData): string {
   doc.setTextColor(220, 215, 255);
   doc.text(data.serviceName, margin, 31);
 
-  // Date + ref right-aligned
+  // Logo in header top-right if available
+  if (profile?.logoBase64 && profile?.logoFormat) {
+    try {
+      doc.addImage(profile.logoBase64, profile.logoFormat, W - margin - 22, 5, 22, 22);
+    } catch {
+      // skip if image fails
+    }
+  }
+
+  // Date + ref
+  const refX = profile?.logoBase64 ? W - margin - 26 : W - margin;
   doc.setFontSize(9);
   doc.setTextColor(200, 200, 255);
   const dateStr = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
-  doc.text(`Date : ${dateStr}`, W - margin, 18, { align: "right" });
-  doc.text(`Réf. : ${data.projectId.slice(0, 8).toUpperCase()}`, W - margin, 25, { align: "right" });
+  doc.text(`Date : ${dateStr}`, refX, 18, { align: "right" });
+  doc.text(`Réf. : ${data.projectId.slice(0, 8).toUpperCase()}`, refX, 25, { align: "right" });
 
   y = 60;
 
-  // ── Client block
-  doc.setFillColor(...lightGray);
-  doc.roundedRect(margin, y, contentW, 40, 3, 3, "F");
+  if (hasProfile) {
+    // ── Two-column layout: prestataire (left) + client (right)
+    const colW = (contentW - 6) / 2;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(...gray);
-  doc.text("CLIENT", margin + 8, y + 8);
+    // Prestataire block (left)
+    doc.setFillColor(...lightGray);
+    doc.roundedRect(margin, y, colW, 44, 3, 3, "F");
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(...dark);
-  doc.text(data.clientName, margin + 8, y + 17);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("DE", margin + 8, y + 8);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(...gray);
-  let clientInfo = data.clientEmail;
-  if (data.clientPhone) clientInfo += `  ·  ${data.clientPhone}`;
-  if (data.clientCity) clientInfo += `  ·  ${data.clientCity}`;
-  doc.text(clientInfo, margin + 8, y + 25);
+    const fullName = [profile.prenom, profile.nom].filter(Boolean).join(" ");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...dark);
+    doc.text(fullName, margin + 8, y + 17);
 
-  if (data.brandName) {
-    doc.text(`Marque : ${data.brandName}${data.sector ? ` — ${data.sector}` : ""}`, margin + 8, y + 33);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...gray);
+    let py = y + 24;
+    if (profile.email_pro) { doc.text(profile.email_pro, margin + 8, py); py += 5; }
+    if (profile.telephone) { doc.text(profile.telephone, margin + 8, py); py += 5; }
+    if (profile.adresse) {
+      const addrLines = doc.splitTextToSize(profile.adresse, colW - 16) as string[];
+      doc.text(addrLines.slice(0, 2), margin + 8, py);
+      py += addrLines.slice(0, 2).length * 4.5;
+    }
+    if (profile.siret) {
+      doc.setFontSize(7.5);
+      doc.text(`SIRET : ${profile.siret}`, margin + 8, y + 40);
+    }
+
+    // Client block (right)
+    const clientX = margin + colW + 6;
+    doc.setFillColor(...lightGray);
+    doc.roundedRect(clientX, y, colW, 44, 3, 3, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("POUR", clientX + 8, y + 8);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...dark);
+    doc.text(data.clientName, clientX + 8, y + 17);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...gray);
+    let clientInfo = data.clientEmail;
+    if (data.clientPhone) clientInfo += `  ·  ${data.clientPhone}`;
+    if (data.clientCity) clientInfo += `  ·  ${data.clientCity}`;
+    const clientInfoLines = doc.splitTextToSize(clientInfo, colW - 16) as string[];
+    doc.text(clientInfoLines, clientX + 8, y + 24);
+
+    if (data.brandName) {
+      doc.text(
+        `Marque : ${data.brandName}${data.sector ? ` — ${data.sector}` : ""}`,
+        clientX + 8, y + 38
+      );
+    }
+
+    y += 56;
+  } else {
+    // ── Single client block (no profile)
+    doc.setFillColor(...lightGray);
+    doc.roundedRect(margin, y, contentW, 40, 3, 3, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("CLIENT", margin + 8, y + 8);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...dark);
+    doc.text(data.clientName, margin + 8, y + 17);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...gray);
+    let clientInfo = data.clientEmail;
+    if (data.clientPhone) clientInfo += `  ·  ${data.clientPhone}`;
+    if (data.clientCity) clientInfo += `  ·  ${data.clientCity}`;
+    doc.text(clientInfo, margin + 8, y + 25);
+
+    if (data.brandName) {
+      doc.text(`Marque : ${data.brandName}${data.sector ? ` — ${data.sector}` : ""}`, margin + 8, y + 33);
+    }
+
+    y += 52;
   }
-
-  y += 52;
 
   // ── Prestation section title
   doc.setFont("helvetica", "bold");
@@ -226,7 +320,12 @@ export function generateDevisPDF(data: DevisData): string {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(180, 180, 180);
-  doc.text("Devis généré via Clari · Ce document est une estimation et ne constitue pas un engagement contractuel.", margin, footerY + 5);
+
+  const footerLeft = hasProfile
+    ? [profile?.prenom, profile?.nom].filter(Boolean).join(" ") + (profile?.site_web ? ` · ${profile.site_web}` : "")
+    : "Devis généré via Clari · Ce document est une estimation et ne constitue pas un engagement contractuel.";
+
+  doc.text(footerLeft, margin, footerY + 5);
   doc.text(`Créé le ${data.createdAt}`, W - margin, footerY + 5, { align: "right" });
 
   return doc.output("datauristring").split(",")[1];

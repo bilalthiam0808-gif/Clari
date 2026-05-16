@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import type { ProfileData } from "./generateDevis";
 
 type FactureData = {
   factureId: string;
@@ -17,7 +18,7 @@ function fmtDate(iso: string | null | undefined): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-export function generateFacturePDF(data: FactureData): string {
+export function generateFacturePDF(data: FactureData, profile?: ProfileData): string {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210;
   const margin = 20;
@@ -31,6 +32,7 @@ export function generateFacturePDF(data: FactureData): string {
   const white  = [255, 255, 255] as [number, number, number];
 
   const ref = data.factureId.replace(/-/g, "").slice(0, 8).toUpperCase();
+  const hasProfile = !!(profile?.prenom || profile?.nom);
 
   // ── Header background
   doc.setFillColor(...green);
@@ -46,36 +48,99 @@ export function generateFacturePDF(data: FactureData): string {
   doc.setTextColor(180, 235, 215);
   doc.text(data.serviceName, margin, 31);
 
+  // Logo in header top-right if available
+  if (profile?.logoBase64 && profile?.logoFormat) {
+    try {
+      doc.addImage(profile.logoBase64, profile.logoFormat, W - margin - 22, 5, 22, 22);
+    } catch {
+      // skip if image fails
+    }
+  }
+
+  const refX = profile?.logoBase64 ? W - margin - 26 : W - margin;
   doc.setFontSize(9);
   doc.setTextColor(200, 240, 225);
-  doc.text(`N° : ${ref}`, W - margin, 18, { align: "right" });
-  doc.text(`Émise le : ${fmtDate(data.issuedAt)}`, W - margin, 25, { align: "right" });
+  doc.text(`N° : ${ref}`, refX, 18, { align: "right" });
+  doc.text(`Émise le : ${fmtDate(data.issuedAt)}`, refX, 25, { align: "right" });
   if (data.dueAt) {
-    doc.text(`Échéance : ${fmtDate(data.dueAt)}`, W - margin, 32, { align: "right" });
+    doc.text(`Échéance : ${fmtDate(data.dueAt)}`, refX, 32, { align: "right" });
   }
 
   y = 60;
 
-  // ── Client block
-  doc.setFillColor(...light);
-  doc.roundedRect(margin, y, contentW, 32, 3, 3, "F");
+  if (hasProfile) {
+    // ── Two-column layout: prestataire (left) + client (right)
+    const colW = (contentW - 6) / 2;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(...gray);
-  doc.text("FACTURÉ À", margin + 8, y + 8);
+    // Prestataire block (left)
+    doc.setFillColor(...light);
+    doc.roundedRect(margin, y, colW, 36, 3, 3, "F");
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(...dark);
-  doc.text(data.clientName, margin + 8, y + 17);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("DE", margin + 8, y + 8);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(...gray);
-  doc.text(data.clientEmail, margin + 8, y + 25);
+    const fullName = [profile.prenom, profile.nom].filter(Boolean).join(" ");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...dark);
+    doc.text(fullName, margin + 8, y + 17);
 
-  y += 44;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...gray);
+    let py = y + 24;
+    if (profile.email_pro) { doc.text(profile.email_pro, margin + 8, py); py += 5; }
+    if (profile.telephone) { doc.text(profile.telephone, margin + 8, py); py += 5; }
+    if (profile.siret) {
+      doc.setFontSize(7.5);
+      doc.text(`SIRET : ${profile.siret}`, margin + 8, y + 32);
+    }
+
+    // Client block (right)
+    const clientX = margin + colW + 6;
+    doc.setFillColor(...light);
+    doc.roundedRect(clientX, y, colW, 36, 3, 3, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("FACTURÉ À", clientX + 8, y + 8);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...dark);
+    doc.text(data.clientName, clientX + 8, y + 17);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...gray);
+    doc.text(data.clientEmail, clientX + 8, y + 24);
+
+    y += 48;
+  } else {
+    // ── Single client block (no profile)
+    doc.setFillColor(...light);
+    doc.roundedRect(margin, y, contentW, 32, 3, 3, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("FACTURÉ À", margin + 8, y + 8);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...dark);
+    doc.text(data.clientName, margin + 8, y + 17);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...gray);
+    doc.text(data.clientEmail, margin + 8, y + 25);
+
+    y += 44;
+  }
 
   // ── Status badge
   const isPaid = data.status === "Payée";
@@ -166,7 +231,12 @@ export function generateFacturePDF(data: FactureData): string {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(180, 180, 180);
-  doc.text("Facture générée via Clari · Merci de votre confiance.", margin, footerY + 5);
+
+  const footerLeft = hasProfile
+    ? [profile?.prenom, profile?.nom].filter(Boolean).join(" ") + (profile?.site_web ? ` · ${profile.site_web}` : "")
+    : "Facture générée via Clari · Merci de votre confiance.";
+
+  doc.text(footerLeft, margin, footerY + 5);
   doc.text(`Réf. ${ref}`, W - margin, footerY + 5, { align: "right" });
 
   return doc.output("datauristring").split(",")[1];

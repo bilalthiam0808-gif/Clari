@@ -81,10 +81,13 @@ const logoutIcon = (
   </svg>
 );
 
+type Profile = { prenom?: string; nom?: string };
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [newBriefs, setNewBriefs] = useState(0);
+  const [profile, setProfile] = useState<Profile>({});
   const { theme, toggle } = useTheme("dark", "clari_admin_theme");
   const mobileNavRef = useRef<HTMLElement>(null);
 
@@ -118,6 +121,10 @@ export default function Sidebar() {
           setNewBriefs(data.filter(p => p.briefData && p.status === "Brief reçu").length);
         }
       })
+      .catch(() => {});
+    fetch("/api/settings")
+      .then(r => r.ok ? r.json() : {})
+      .then(d => setProfile({ prenom: d.prenom ?? "", nom: d.nom ?? "" }))
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -210,19 +217,33 @@ export default function Sidebar() {
 
         {/* Plan */}
         <div style={{ padding: "0 12px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px" }}>
+          <Link
+            href="/profil"
+            style={{
+              display: "flex", alignItems: "center", gap: "10px",
+              padding: "8px 14px", borderRadius: "8px",
+              textDecoration: "none",
+              background: pathname === "/profil" ? "var(--surface)" : "transparent",
+              border: pathname === "/profil" ? "0.5px solid var(--border)" : "0.5px solid transparent",
+              transition: "all 100ms ease",
+            }}
+          >
             <div style={{
               width: "30px", height: "30px", borderRadius: "8px",
               background: "var(--accent-bg)", border: "0.5px solid rgba(127,119,221,0.3)",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent-light)" }}>BT</span>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent-light)" }}>
+                {[profile.prenom?.[0], profile.nom?.[0]].filter(Boolean).join("") || "BT"}
+              </span>
             </div>
             <div>
-              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)" }}>Billale Thiam</div>
+              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)" }}>
+                {[profile.prenom, profile.nom].filter(Boolean).join(" ") || "Mon profil"}
+              </div>
               <div style={{ fontSize: "11px", color: "var(--text3)" }}>Admin</div>
             </div>
-          </div>
+          </Link>
 
           {/* Theme toggle */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px" }}>
