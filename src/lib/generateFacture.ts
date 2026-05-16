@@ -1,6 +1,40 @@
 import jsPDF from "jspdf";
 import type { ProfileData } from "./generateDevis";
 
+function fmtMoney(n: number): string {
+  return Math.round(n).toString().replace(/(\d)(?=(\d{3})+$)/g, "$1 ");
+}
+
+function addImageRounded(doc: jsPDF, b64: string, fmt: string, x: number, y: number, size: number, r: number) {
+  try {
+    const sf = doc.internal.scaleFactor;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ph: number = (doc.internal.pageSize as any).height ?? (doc.internal.pageSize as any).getHeight();
+    const k = 0.5522847498;
+    function tx(v: number) { return (v * sf).toFixed(3); }
+    function ty(v: number) { return ((ph - v) * sf).toFixed(3); }
+    const path = [
+      `${tx(x + r)} ${ty(y)} m`,
+      `${tx(x + size - r)} ${ty(y)} l`,
+      `${tx(x + size - r + r * k)} ${ty(y)} ${tx(x + size)} ${ty(y + r - r * k)} ${tx(x + size)} ${ty(y + r)} c`,
+      `${tx(x + size)} ${ty(y + size - r)} l`,
+      `${tx(x + size)} ${ty(y + size - r + r * k)} ${tx(x + size - r + r * k)} ${ty(y + size)} ${tx(x + size - r)} ${ty(y + size)} c`,
+      `${tx(x + r)} ${ty(y + size)} l`,
+      `${tx(x + r - r * k)} ${ty(y + size)} ${tx(x)} ${ty(y + size - r + r * k)} ${tx(x)} ${ty(y + size - r)} c`,
+      `${tx(x)} ${ty(y + r)} l`,
+      `${tx(x)} ${ty(y + r - r * k)} ${tx(x + r - r * k)} ${ty(y)} ${tx(x + r)} ${ty(y)} c`,
+      "h W n",
+    ].join(" ");
+    doc.saveGraphicsState();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (doc as any).internal.write(path);
+    doc.addImage(b64, fmt, x, y, size, size);
+    doc.restoreGraphicsState();
+  } catch {
+    doc.addImage(b64, fmt, x, y, size, size);
+  }
+}
+
 type FactureData = {
   factureId: string;
   clientName: string;
@@ -50,11 +84,7 @@ export function generateFacturePDF(data: FactureData, profile?: ProfileData): st
 
   // Logo in header top-right if available
   if (profile?.logoBase64 && profile?.logoFormat) {
-    try {
-      doc.addImage(profile.logoBase64, profile.logoFormat, W - margin - 22, 5, 22, 22);
-    } catch {
-      // skip if image fails
-    }
+    addImageRounded(doc, profile.logoBase64, profile.logoFormat, W - margin - 22, 5, 22, 4);
   }
 
   const refX = profile?.logoBase64 ? W - margin - 26 : W - margin;
@@ -173,7 +203,7 @@ export function generateFacturePDF(data: FactureData, profile?: ProfileData): st
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.text(`${data.amount.toLocaleString("fr-FR")} €`, W - margin, y, { align: "right" });
+  doc.text(`${fmtMoney(data.amount)} €`, W - margin, y, { align: "right" });
   y += 8;
 
   // Total line
@@ -189,7 +219,7 @@ export function generateFacturePDF(data: FactureData, profile?: ProfileData): st
 
   doc.setFontSize(20);
   doc.setTextColor(...green);
-  doc.text(`${data.amount.toLocaleString("fr-FR")} €`, W - margin, y, { align: "right" });
+  doc.text(`${fmtMoney(data.amount)} €`, W - margin, y, { align: "right" });
   y += 16;
 
   // ── Due date reminder

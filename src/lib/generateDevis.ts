@@ -1,5 +1,41 @@
 import jsPDF from "jspdf";
 
+// jsPDF's Helvetica doesn't support   (narrow no-break space) used by fr-FR locale
+function fmtMoney(n: number): string {
+  return Math.round(n).toString().replace(/(\d)(?=(\d{3})+$)/g, "$1 ");
+}
+
+// Clip subsequent drawing to a rounded rectangle, then restore after addImage
+function addImageRounded(doc: jsPDF, b64: string, fmt: string, x: number, y: number, size: number, r: number) {
+  try {
+    const sf = doc.internal.scaleFactor;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ph: number = (doc.internal.pageSize as any).height ?? (doc.internal.pageSize as any).getHeight();
+    const k = 0.5522847498;
+    function tx(v: number) { return (v * sf).toFixed(3); }
+    function ty(v: number) { return ((ph - v) * sf).toFixed(3); }
+    const path = [
+      `${tx(x + r)} ${ty(y)} m`,
+      `${tx(x + size - r)} ${ty(y)} l`,
+      `${tx(x + size - r + r * k)} ${ty(y)} ${tx(x + size)} ${ty(y + r - r * k)} ${tx(x + size)} ${ty(y + r)} c`,
+      `${tx(x + size)} ${ty(y + size - r)} l`,
+      `${tx(x + size)} ${ty(y + size - r + r * k)} ${tx(x + size - r + r * k)} ${ty(y + size)} ${tx(x + size - r)} ${ty(y + size)} c`,
+      `${tx(x + r)} ${ty(y + size)} l`,
+      `${tx(x + r - r * k)} ${ty(y + size)} ${tx(x)} ${ty(y + size - r + r * k)} ${tx(x)} ${ty(y + size - r)} c`,
+      `${tx(x)} ${ty(y + r)} l`,
+      `${tx(x)} ${ty(y + r - r * k)} ${tx(x + r - r * k)} ${ty(y)} ${tx(x + r)} ${ty(y)} c`,
+      "h W n",
+    ].join(" ");
+    doc.saveGraphicsState();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (doc as any).internal.write(path);
+    doc.addImage(b64, fmt, x, y, size, size);
+    doc.restoreGraphicsState();
+  } catch {
+    doc.addImage(b64, fmt, x, y, size, size);
+  }
+}
+
 type Option = {
   label: string;
   price: string;
@@ -70,11 +106,7 @@ export function generateDevisPDF(data: DevisData, profile?: ProfileData): string
 
   // Logo in header top-right if available
   if (profile?.logoBase64 && profile?.logoFormat) {
-    try {
-      doc.addImage(profile.logoBase64, profile.logoFormat, W - margin - 22, 5, 22, 22);
-    } catch {
-      // skip if image fails
-    }
+    addImageRounded(doc, profile.logoBase64, profile.logoFormat, W - margin - 22, 5, 22, 4);
   }
 
   // Date + ref
@@ -197,7 +229,7 @@ export function generateDevisPDF(data: DevisData, profile?: ProfileData): string
   y += 6;
 
   // Base service row
-  const basePriceDisplay = data.basePrice ? `${data.basePrice.toLocaleString("fr-FR")} €` : "—";
+  const basePriceDisplay = data.basePrice ? `${fmtMoney(data.basePrice)} €` : "—";
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.setTextColor(...dark);
@@ -230,7 +262,7 @@ export function generateDevisPDF(data: DevisData, profile?: ProfileData): string
 
       const priceStr = opt.isPercent
         ? `+${opt.price}%`
-        : `+${parseFloat(opt.price).toLocaleString("fr-FR")} €`;
+        : `+${fmtMoney(parseFloat(opt.price))} €`;
       doc.setFont("helvetica", "bold");
       doc.setTextColor(...accent);
       doc.text(priceStr, W - margin, y, { align: "right" });
@@ -252,7 +284,7 @@ export function generateDevisPDF(data: DevisData, profile?: ProfileData): string
 
   doc.setFontSize(18);
   doc.setTextColor(...accent);
-  doc.text(`${data.total.toLocaleString("fr-FR")} €`, W - margin, y, { align: "right" });
+  doc.text(`${fmtMoney(data.total)} €`, W - margin, y, { align: "right" });
   y += 14;
 
   // ── Brand context (if available)
