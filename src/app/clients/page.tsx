@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "@/components/Toaster";
+import FactureEditorModal, { type FactureRow } from "@/components/FactureEditorModal";
 
 type Service = { id: string; name: string; category: string };
 
@@ -28,19 +29,7 @@ type Project = {
   source?: string;
 };
 
-type Facture = {
-  id: string;
-  projectId: string | null;
-  clientName: string;
-  clientEmail: string;
-  serviceName: string;
-  amount: number;
-  status: "En attente" | "Envoyée" | "Payée" | "En retard";
-  issuedAt: string;
-  dueAt: string | null;
-  paidAt: string | null;
-  notes: string | null;
-};
+type Facture = FactureRow & { status: "En attente" | "Envoyée" | "Payée" | "En retard" };
 
 type Client = {
   name: string;
@@ -114,13 +103,8 @@ export default function ClientsPage() {
   // Envoi facture PDF
   const [sendingFacture, setSendingFacture] = useState<Record<string, boolean>>({});
 
-  // Modal nouvelle facture
-  const [showFactureModal, setShowFactureModal] = useState<{ client: Client; project: Project | null } | null>(null);
-  const [fServiceName, setFServiceName] = useState("");
-  const [fAmount, setFAmount] = useState("");
-  const [fDueAt, setFDueAt] = useState("");
-  const [fNotes, setFNotes] = useState("");
-  const [fSaving, setFSaving] = useState(false);
+  // Modal facture (create / edit)
+  const [factureModal, setFactureModal] = useState<{ mode: "create" | "edit"; client: Client; project: Project | null; facture?: Facture } | null>(null);
 
   // Modal nouveau client
   const [showModal, setShowModal] = useState(false);
@@ -174,36 +158,15 @@ export default function ClientsPage() {
     if (res.ok) setFactures(f => ({ ...f, [email]: (f[email] ?? []).filter(fa => fa.id !== factureId) }));
   }
 
-  function openFactureModal(client: Client, project: Project | null) {
-    setFServiceName(project?.serviceName ?? "");
-    setFAmount(project?.briefData?.totalEstime?.toString() ?? "");
-    setFDueAt(""); setFNotes("");
-    setShowFactureModal({ client, project });
-  }
-
-  async function createFacture() {
-    if (!showFactureModal || !fServiceName || !fAmount) return;
-    setFSaving(true);
-    const { client, project } = showFactureModal;
-    const res = await fetch("/api/factures", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        projectId: project?.id ?? null,
-        clientName: client.name,
-        clientEmail: client.email,
-        serviceName: fServiceName,
-        amount: parseFloat(fAmount),
-        dueAt: fDueAt || null,
-        notes: fNotes || null,
-      }),
+  function handleFactureSaved(email: string, saved: FactureRow, isEdit: boolean) {
+    const asFacture = saved as Facture;
+    setFactures(f => {
+      const list = f[email] ?? [];
+      if (isEdit) return { ...f, [email]: list.map(fa => fa.id === saved.id ? { ...fa, ...asFacture } : fa) };
+      return { ...f, [email]: [asFacture, ...list] };
     });
-    setFSaving(false);
-    if (res.ok) {
-      const created = await res.json();
-      setFactures(f => ({ ...f, [client.email]: [created, ...(f[client.email] ?? [])] }));
-      setShowFactureModal(null);
-    }
+    setFactureModal(null);
+    toast(isEdit ? "Facture modifiée" : "Facture créée", "success");
   }
 
   async function relance(email: string, name: string, serviceName: string, amount: number | undefined, type: "devis" | "facture", key: string) {
@@ -514,7 +477,7 @@ export default function ClientsPage() {
                       <div style={{ padding: "16px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
                           <div style={sectionLabel}>Factures ({clientFactures.length})</div>
-                          <button onClick={() => openFactureModal(client, client.projects[0] ?? null)}
+                          <button onClick={() => setFactureModal({ mode: "create", client, project: client.projects[0] ?? null })}
                             style={{ display: "flex", alignItems: "center", gap: "5px", padding: "5px 10px", borderRadius: "7px", border: "0.5px solid var(--border)", background: "transparent", color: "var(--text2)", fontSize: "11px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                             Nouvelle facture
@@ -580,6 +543,15 @@ export default function ClientsPage() {
                                         </button>
                                       )
                                     )}
+                                    {/* Edit */}
+                                    <button
+                                      onClick={() => setFactureModal({ mode: "edit", client, project: null, facture: fa })}
+                                      title="Modifier la facture"
+                                      style={{ width: "26px", height: "26px", flexShrink: 0, borderRadius: "6px", border: "0.5px solid var(--border)", background: "transparent", color: "var(--text3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                                      onMouseEnter={e => (e.currentTarget.style.color = "var(--accent-light)")}
+                                      onMouseLeave={e => (e.currentTarget.style.color = "var(--text3)")}>
+                                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 7.5V9h1.5l4.5-4.5-1.5-1.5L1 7.5z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/><path d="M6.5 2l1.5 1.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></svg>
+                                    </button>
                                     {/* Delete */}
                                     <button onClick={() => deleteFacture(fa.id, client.email)}
                                       style={{ width: "26px", height: "26px", flexShrink: 0, borderRadius: "6px", border: "0.5px solid var(--border)", background: "transparent", color: "var(--text3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
@@ -605,41 +577,29 @@ export default function ClientsPage() {
         )}
       </main>
 
-      {/* ── Modal nouvelle facture ── */}
-      {showFactureModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "16px", border: "0.5px solid var(--border)", width: "100%", maxWidth: "400px", padding: "28px" }}>
-            <h2 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)", marginBottom: "4px" }}>Nouvelle facture</h2>
-            <p style={{ fontSize: "12px", color: "var(--text3)", marginBottom: "22px" }}>Pour <strong style={{ color: "var(--text2)" }}>{showFactureModal.client.name}</strong></p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "24px" }}>
-              <div>
-                <label style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>Prestation</label>
-                <input value={fServiceName} onChange={e => setFServiceName(e.target.value)} placeholder="Ex : Site web vitrine" style={inputBase} />
-              </div>
-              <div>
-                <label style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>Montant (€)</label>
-                <input type="number" value={fAmount} onChange={e => setFAmount(e.target.value)} placeholder="Ex : 2500" style={inputBase} />
-              </div>
-              <div>
-                <label style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>Date d&apos;échéance</label>
-                <input type="date" value={fDueAt} onChange={e => setFDueAt(e.target.value)} style={inputBase} />
-              </div>
-              <div>
-                <label style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>Notes (optionnel)</label>
-                <textarea value={fNotes} onChange={e => setFNotes(e.target.value)} rows={2} placeholder="Ex : Acompte de 50% versé…" style={{ ...inputBase, resize: "vertical" }} />
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setShowFactureModal(null)} style={{ flex: 1, padding: "10px", borderRadius: "9px", border: "0.5px solid var(--border)", background: "transparent", color: "var(--text2)", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
-              <button onClick={createFacture} disabled={fSaving || !fServiceName || !fAmount}
-                style={{ flex: 1, padding: "10px", borderRadius: "9px", border: "none", background: "var(--accent)", color: "#FFF", fontSize: "13px", fontWeight: 500, cursor: "pointer", fontFamily: "inherit", opacity: (!fServiceName || !fAmount) ? 0.5 : 1 }}>
-                {fSaving ? "Création…" : "Créer la facture"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* ── Modal facture (create / edit) ── */}
+      {factureModal && (
+        <FactureEditorModal
+          mode={factureModal.mode}
+          clientName={factureModal.client.name}
+          clientEmail={factureModal.client.email}
+          projectId={factureModal.project?.id ?? null}
+          factureId={factureModal.facture?.id}
+          initial={factureModal.facture ? {
+            clientName: factureModal.facture.clientName,
+            clientEmail: factureModal.facture.clientEmail,
+            serviceName: factureModal.facture.serviceName,
+            amount: String(factureModal.facture.amount),
+            issuedAt: factureModal.facture.issuedAt?.slice(0, 10) ?? "",
+            dueAt: factureModal.facture.dueAt?.slice(0, 10) ?? "",
+            notes: factureModal.facture.notes ?? "",
+          } : {
+            serviceName: factureModal.project?.serviceName ?? "",
+            amount: factureModal.project?.briefData?.totalEstime?.toString() ?? "",
+          }}
+          onClose={() => setFactureModal(null)}
+          onSaved={saved => handleFactureSaved(factureModal.client.email, saved, factureModal.mode === "edit")}
+        />
       )}
 
       {/* ── Modal nouveau client ── */}

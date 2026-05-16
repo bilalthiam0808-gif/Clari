@@ -36,7 +36,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (body.status === "Payée") patch.paid_at = new Date().toISOString();
     if (body.status !== "Payée") patch.paid_at = null;
   }
+  if (body.serviceName !== undefined) patch.service_name = body.serviceName;
   if (body.amount !== undefined) patch.amount = Number(body.amount);
+  if (body.issuedAt !== undefined) patch.issued_at = body.issuedAt;
   if (body.dueAt !== undefined) patch.due_at = body.dueAt;
   if (body.notes !== undefined) patch.notes = body.notes;
 

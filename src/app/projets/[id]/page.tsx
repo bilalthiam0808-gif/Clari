@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "@/components/Toaster";
+import DevisEditorModal from "@/components/DevisEditorModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,9 +134,7 @@ export default function ProjetDetailPage() {
   const [dbQuestions, setDbQuestions] = useState<Record<string, { question: string }[]>>({});
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
-  const [previewing, setPreviewing] = useState(false);
+  const [showDevisEditor, setShowDevisEditor] = useState(false);
   const [notes, setNotes] = useState("");
   const notesSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -169,77 +168,6 @@ export default function ProjetDetailPage() {
       navigator.clipboard.writeText(`${window.location.origin}/b/${project.slug}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    }
-  }
-
-  function buildDevisPayload() {
-    if (!project?.briefData) return null;
-    const brief = project.briefData;
-    const resolvedOpts = service && brief.selectedOptions
-      ? service.options.filter(o => brief.selectedOptions?.includes(o.id))
-      : [];
-    return {
-      clientEmail: project.clientEmail,
-      clientName: project.clientName,
-      clientPhone: brief.clientPhone,
-      clientCity: brief.clientCity,
-      serviceName: brief.selectedService || project.serviceName,
-      serviceCategory: brief.serviceCategory,
-      basePrice: service ? parseFloat(service.basePrice) : undefined,
-      selectedOptions: resolvedOpts,
-      total: brief.totalEstime ?? 0,
-      brandName: brief.brandName,
-      sector: brief.sector,
-      target: brief.target,
-      brandDesc: brief.brandDesc,
-      clientNote: brief.clientNote,
-      projectId: project.id,
-      slug: project.slug,
-      createdAt: project.createdAt,
-    };
-  }
-
-  async function handleSendDevis() {
-    const payload = buildDevisPayload();
-    if (!payload) return;
-    setSending(true);
-    setSendStatus("idle");
-    try {
-      const res = await fetch("/api/send-devis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) { setSendStatus("error"); }
-      else { setSendStatus("success"); updateStatus("Devis envoyé"); }
-    } catch {
-      setSendStatus("error");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  async function previewDevis() {
-    const payload = buildDevisPayload();
-    if (!payload) return;
-    setPreviewing(true);
-    try {
-      const res = await fetch("/api/preview-devis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) return;
-      const { pdfBase64 } = await res.json();
-      const bytes = atob(pdfBase64);
-      const uint8 = new Uint8Array(bytes.length);
-      for (let i = 0; i < bytes.length; i++) uint8[i] = bytes.charCodeAt(i);
-      const blob = new Blob([uint8], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    } finally {
-      setPreviewing(false);
     }
   }
 
@@ -464,88 +392,25 @@ export default function ProjetDetailPage() {
               </div>
             )}
 
-            {/* Prévisualisation + envoi */}
-            <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
-              <button
-                onClick={previewDevis}
-                disabled={previewing}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  borderRadius: "12px",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  fontFamily: "inherit",
-                  cursor: previewing ? "not-allowed" : "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                  background: "transparent",
-                  color: "var(--accent-light)",
-                  border: "0.5px solid rgba(127,119,221,0.4)",
-                  transition: "all 150ms",
-                  opacity: previewing ? 0.6 : 1,
-                }}
-              >
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                  <path d="M1 7.5S3.5 2 7.5 2s6.5 5.5 6.5 5.5S12.5 13 7.5 13 1 7.5 1 7.5z" stroke="currentColor" strokeWidth="1.2"/>
-                  <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" strokeWidth="1.2"/>
-                </svg>
-                {previewing ? "Génération…" : "Prévisualiser"}
-              </button>
-            </div>
-
-            {/* Bouton envoyer le devis */}
+            {/* Bouton éditeur de devis */}
             {project.status !== "Devis envoyé" && (
               <div style={{ marginBottom: "12px" }}>
                 <button
-                  onClick={handleSendDevis}
-                  disabled={sending}
+                  onClick={() => setShowDevisEditor(true)}
                   style={{
-                    width: "100%",
-                    padding: "14px 24px",
-                    borderRadius: "12px",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    fontFamily: "inherit",
-                    cursor: sending ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "10px",
-                    background: sending ? "rgba(29,158,117,0.1)" : "linear-gradient(135deg, #1D9E75 0%, #15785A 100%)",
-                    color: sending ? "#1D9E75" : "#fff",
-                    border: sending ? "1px solid rgba(29,158,117,0.4)" : "none",
-                    boxShadow: sending ? "none" : "0 4px 16px rgba(29,158,117,0.25)",
-                    transition: "all 150ms",
-                    opacity: sending ? 0.7 : 1,
+                    width: "100%", padding: "14px 24px", borderRadius: "12px",
+                    fontSize: "14px", fontWeight: 600, fontFamily: "inherit", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+                    background: "linear-gradient(135deg, #1D9E75 0%, #15785A 100%)",
+                    color: "#fff", border: "none",
+                    boxShadow: "0 4px 16px rgba(29,158,117,0.25)",
                   }}
                 >
-                  {sending ? (
-                    <>
-                      <div style={{ width: "16px", height: "16px", border: "2px solid #1D9E75", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
-                      Envoi en cours…
-                    </>
-                  ) : (
-                    <>
-                      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-                        <path d="M2 8.5L15 2l-4 6.5 4 6.5L2 8.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                      </svg>
-                      Accepter et envoyer le devis
-                    </>
-                  )}
+                  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+                    <path d="M2 8.5L15 2l-4 6.5 4 6.5L2 8.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                  Modifier et envoyer le devis
                 </button>
-
-                {sendStatus === "success" && (
-                  <div style={{ marginTop: "8px", padding: "10px 14px", borderRadius: "8px", background: "rgba(29,158,117,0.1)", border: "0.5px solid rgba(29,158,117,0.4)", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#1D9E75" }}>
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#1D9E75" strokeWidth="1.2"/><path d="M4.5 7.5l2 2 4-4" stroke="#1D9E75" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    Devis envoyé avec succès à {project.clientEmail}
-                  </div>
-                )}
-                {sendStatus === "error" && (
-                  <div style={{ marginTop: "8px", padding: "10px 14px", borderRadius: "8px", background: "rgba(226,75,74,0.1)", border: "0.5px solid rgba(226,75,74,0.4)", display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#E24B4A" }}>
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#E24B4A" strokeWidth="1.2"/><path d="M7.5 4.5v4M7.5 10.5v.5" stroke="#E24B4A" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                    Erreur lors de l&apos;envoi. Vérifiez votre clé API Resend dans <code style={{ fontSize: "11px", background: "rgba(226,75,74,0.1)", padding: "1px 5px", borderRadius: "4px" }}>.env.local</code>.
-                  </div>
-                )}
               </div>
             )}
 
@@ -708,6 +573,15 @@ export default function ProjetDetailPage() {
           <p style={{ fontSize: "11px", color: "var(--text3)", marginTop: "6px" }}>Sauvegardée automatiquement</p>
         </div>
       </div>
+
+      {showDevisEditor && (
+        <DevisEditorModal
+          project={project}
+          service={service}
+          onClose={() => setShowDevisEditor(false)}
+          onSent={() => { updateStatus("Devis envoyé"); setShowDevisEditor(false); }}
+        />
+      )}
     </div>
   );
 }
