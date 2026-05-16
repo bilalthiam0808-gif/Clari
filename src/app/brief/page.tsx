@@ -470,7 +470,12 @@ export default function BriefPage() {
             }}>
               {profileLogoUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={profileLogoUrl} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                <img
+                  src={profileLogoUrl}
+                  alt=""
+                  onError={() => setProfileLogoUrl("")}
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                />
               ) : (
                 <span style={{ fontSize: "24px", fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>BT</span>
               )}

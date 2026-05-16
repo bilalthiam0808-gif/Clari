@@ -127,7 +127,7 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={logoUrl}
-              alt="Logo"
+              alt=""
               style={{ maxWidth: "100%", maxHeight: "360px", objectFit: "contain", borderRadius: "8px" }}
             />
             <button
@@ -183,7 +183,12 @@ export default function ProfilClient({ initialData }: { initialData: ProfileData
               >
                 {logoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={logoUrl} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    onError={() => setLogoUrl("")}
+                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                  />
                 ) : (
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--text3)" strokeWidth="1.2"/>
