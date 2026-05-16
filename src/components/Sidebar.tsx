@@ -124,7 +124,7 @@ export default function Sidebar() {
       .catch(() => {});
     fetch("/api/settings")
       .then(r => r.ok ? r.json() : {})
-      .then(d => setProfile({ prenom: d.prenom ?? "", nom: d.nom ?? "" }))
+      .then((d: { prenom?: string; nom?: string }) => setProfile({ prenom: d.prenom ?? "", nom: d.nom ?? "" }))
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
