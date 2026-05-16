@@ -60,6 +60,7 @@ export default function DevisEditorModal({ project, service, onClose, onSent }: 
   const [previewing, setPreviewing] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
+  const [sendError, setSendError] = useState("");
 
   useEffect(() => {
     fetch("/api/settings").then(r => r.ok ? r.json() : {}).then(d => setProfile(d)).catch(() => {});
@@ -126,15 +127,23 @@ export default function DevisEditorModal({ project, service, onClose, onSent }: 
   async function handleSend() {
     setSending(true);
     setSendStatus("idle");
+    setSendError("");
     try {
       const res = await fetch("/api/send-devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload()),
       });
-      if (!res.ok) setSendStatus("error");
-      else { setSendStatus("success"); onSent(); }
-    } catch {
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setSendError(json.error ?? "Erreur inconnue");
+        setSendStatus("error");
+      } else {
+        setSendStatus("success");
+        onSent();
+      }
+    } catch (e) {
+      setSendError(e instanceof Error ? e.message : "Erreur réseau");
       setSendStatus("error");
     } finally {
       setSending(false);
@@ -332,8 +341,16 @@ export default function DevisEditorModal({ project, service, onClose, onSent }: 
           </div>
         )}
         {sendStatus === "error" && (
-          <div style={{ padding: "12px 24px", background: "rgba(226,75,74,0.1)", borderTop: "0.5px solid rgba(226,75,74,0.3)", fontSize: "13px", color: "#E24B4A", flexShrink: 0 }}>
-            Erreur lors de l&apos;envoi. Vérifiez votre configuration Resend.
+          <div style={{ padding: "12px 24px", background: "rgba(226,75,74,0.08)", borderTop: "0.5px solid rgba(226,75,74,0.3)", flexShrink: 0 }}>
+            <p style={{ fontSize: "13px", color: "#E24B4A", margin: "0 0 4px", fontWeight: 500 }}>Erreur lors de l&apos;envoi</p>
+            {sendError && (
+              <p style={{ fontSize: "12px", color: "#E24B4A", margin: 0, opacity: 0.85 }}>{sendError}</p>
+            )}
+            {sendError?.toLowerCase().includes("only send") && (
+              <p style={{ fontSize: "11px", color: "#E24B4A", margin: "6px 0 0", opacity: 0.7 }}>
+                Avec <code style={{ background: "rgba(226,75,74,0.15)", padding: "1px 4px", borderRadius: "3px" }}>onboarding@resend.dev</code> vous ne pouvez envoyer qu&apos;à votre propre adresse. Ajoutez un domaine vérifié dans Resend puis mettez à jour <code style={{ background: "rgba(226,75,74,0.15)", padding: "1px 4px", borderRadius: "3px" }}>FROM_EMAIL</code>.
+              </p>
+            )}
           </div>
         )}
 
