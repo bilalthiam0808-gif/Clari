@@ -24,14 +24,20 @@ type Service = {
   options: ServiceOption[];
 };
 
-// ─── Style questions par service ──────────────────────────────────────────────
-
 type StyleQuestion = {
   question: string;
   type: "single" | "multi" | "text";
   choices?: string[];
   placeholder?: string;
 };
+
+type ServiceFormData = {
+  styleAnswers: Record<number, string[]>;
+  autreAnswers: Record<number, string>;
+  selectedOptions: string[];
+};
+
+// ─── Style questions par service ──────────────────────────────────────────────
 
 const STYLE_QUESTIONS: Record<Category, StyleQuestion[]> = {
   "Graphisme": [
@@ -47,7 +53,6 @@ const STYLE_QUESTIONS: Record<Category, StyleQuestion[]> = {
     { question: "Quel univers visuel vous correspond ?", type: "multi", choices: ["Minimaliste", "Premium", "Coloré et dynamique", "Sombre et moderne", "Organique"] },
   ],
   "Site web": [
-    // Section I — Identité et vision
     { question: "Quels sont les objectifs de ce site ?", type: "multi", choices: ["Vendre des produits ou services en ligne", "Générer des prises de rendez-vous", "Informer / présenter mon activité", "Montrer mon portfolio / mes réalisations", "Rassurer des investisseurs ou des partenaires", "Recruter des talents", "Fidéliser mes clients existants", "Éduquer / partager des ressources", "Lancer une communauté en ligne"] },
     { question: "URL de votre site actuel (si existant)", type: "text", placeholder: "Ex : https://monsite.com" },
     { question: "Vos réseaux sociaux actifs (URLs ou @)", type: "text", placeholder: "Ex : @instagram / linkedin.com/in/..." },
@@ -58,31 +63,23 @@ const STYLE_QUESTIONS: Record<Category, StyleQuestion[]> = {
     { question: "Principal frein à l'achat de votre client", type: "single", choices: ["Le prix", "Manque de confiance", "Manque de temps", "Manque d'information"] },
     { question: "Citez 3 concurrents — ce que vous aimez et n'aimez pas", type: "text", placeholder: "Ex : Concurrent 1 — URL / J'aime : ... / Je n'aime pas : ..." },
     { question: "Pourquoi un client vous choisirait-il VOUS plutôt qu'un autre ?", type: "text", placeholder: "Votre valeur ajoutée, votre différence..." },
-    // Section II — Univers visuel
     { question: "Quelle ambiance visuelle correspond à votre marque ?", type: "single", choices: ["Minimaliste & Épuré — style Apple / Hermès", "Moderne & Dark — ambiance tech ou luxe", "Chaleureux & Humain — couleurs douces, photos authentiques", "Brutaliste & Audacieux — grosses typos, couleurs vives", "Luxe & Premium — tons or/crème/noir, haute couture"] },
     { question: "Quel niveau d'animation souhaitez-vous ?", type: "single", choices: ["Statique — aucune animation", "Subtil — apparitions fluides au scroll", "Immersif / Effet Wow — 3D, parallaxe, scroll-storytelling"] },
     { question: "Références visuelles — sites qui vous inspirent", type: "text", placeholder: "Ex : https://site1.com — Ce qui m'inspire : ...\nhttps://site2.com — Ce qui m'inspire : ..." },
-    // Section III — Structure et pages
     { question: "Quel type de site préférez-vous ?", type: "single", choices: ["One-Page — tout sur une seule page", "Multi-pages — chaque section a sa propre page", "Je ne sais pas — je m'en remets à vous"] },
     { question: "Le site doit-il être en plusieurs langues ?", type: "single", choices: ["Non — uniquement en français", "Oui — Français + Anglais", "Oui — autre combinaison"] },
     { question: "Quelles pages souhaitez-vous ?", type: "multi", choices: ["Accueil", "À Propos", "Services", "Contact", "Portfolio", "Études de cas", "Showreel", "Témoignages", "Blog", "FAQ", "Partenaires", "Mentions Légales / RGPD"] },
-    // Section IV — Modules interactifs
     { question: "Quels modules interactifs souhaitez-vous ?", type: "multi", choices: ["Comparateur Avant / Après", "Compteurs dynamiques (ex: 150 projets réalisés)", "Modèle 3D manipulable", "Timeline interactive", "Scroll-Storytelling", "Logo animé au chargement", "Flux Instagram / TikTok intégré", "Carte Google interactive"] },
-    // Section V — Contenu et assets
     { question: "Avez-vous rédigé les textes pour le site ?", type: "single", choices: ["Oui — textes prêts", "J'ai des brouillons à corriger", "J'ai besoin d'une rédaction complète"] },
     { question: "Avez-vous des visuels (images) pour le site ?", type: "single", choices: ["Photos pro HD disponibles", "Photos de mauvaise qualité", "Besoin d'un shooting ou rendu 3D", "On peut utiliser des images stock"] },
-    // Section VI — Plateforme et autonomie
     { question: "Gestion du site après lancement", type: "single", choices: ["Autonomie totale — je veux modifier seul(e) sans coder", "Sur-mesure & performance — je confie la maintenance"] },
     { question: "Quelle plateforme préférez-vous ?", type: "single", choices: ["WordPress", "Shopify", "Next.js / Sur-mesure", "Je ne sais pas"] },
-    // Section VII — Fonctionnalités techniques
     { question: "Quelles fonctionnalités souhaitez-vous ?", type: "multi", choices: ["Formulaire de contact", "Prise de rendez-vous en ligne (type Calendly)", "Inscription à une newsletter", "Paiement sécurisé en ligne", "Avis clients synchronisés (Google Reviews / Trustpilot)", "Statistiques de trafic (Google Analytics ou Matomo)", "Optimisation SEO — apparaître sur Google", "Bandeau cookies RGPD conforme", "Intégration réseaux sociaux"] },
-    // Section VIII — Logistique et budget
     { question: "Avez-vous déjà un nom de domaine ?", type: "single", choices: ["Oui — j'ai déjà mon domaine", "Non — j'ai besoin d'aide"] },
     { question: "Avez-vous déjà un hébergeur ?", type: "single", choices: ["Oui — j'ai déjà un hébergeur", "Non — j'ai besoin d'une recommandation"] },
     { question: "Délai idéal pour le projet", type: "single", choices: ["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de contrainte"] },
     { question: "Souhaitez-vous un forfait de maintenance mensuelle ?", type: "single", choices: ["Oui", "Non", "Je veux en savoir plus"] },
     { question: "Votre enveloppe budgétaire", type: "single", choices: ["Moins de 1 500 €", "1 500 € – 3 500 €", "3 500 € – 7 000 €", "Plus de 7 000 €", "Je préfère ne pas le préciser"] },
-    // Section IX — Le mot de la fin
     { question: "Y a-t-il une envie particulière, un détail ou une fonctionnalité magique dont nous n'avons pas parlé ?", type: "text", placeholder: "Partagez vos idées librement..." },
   ],
 };
@@ -145,6 +142,12 @@ function generateSlug(name: string): string {
   return `${base}-${uid}`;
 }
 
+const emptyFormData = (): ServiceFormData => ({
+  styleAnswers: {},
+  autreAnswers: {},
+  selectedOptions: [],
+});
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BriefPage() {
@@ -154,24 +157,19 @@ export default function BriefPage() {
   const [submitted, setSubmitted] = useState(false);
   const [step, setStep] = useState(0);
 
-  // Étape 1 — Service père
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  // Étape 1 — Sélection multi-services
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
+  const [serviceData, setServiceData] = useState<Record<string, ServiceFormData>>({});
 
-  // Étape 2 — Contexte marque
+  // Étape 2 — Contexte marque (partagé)
   const [brandName, setBrandName] = useState("");
   const [sector, setSector] = useState("");
   const [brandDesc, setBrandDesc] = useState("");
   const [target, setTarget] = useState("");
   const [hasIdentity, setHasIdentity] = useState<"Oui" | "Non" | "">("");
 
-  // Étape 3 — Style visuel
-  const [styleAnswers, setStyleAnswers] = useState<Record<number, string[]>>({});
-  const [autreAnswers, setAutreAnswers] = useState<Record<number, string>>({});
-
-  // Étape 4 — Options
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-
-  // Étape 5 — Coordonnées
+  // Étape 5 — Coordonnées (partagées)
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -189,12 +187,18 @@ export default function BriefPage() {
       .catch(() => {});
   }, []);
 
-  // Reset options & style quand le service change
-  useEffect(() => {
-    setSelectedOptions([]);
-    setStyleAnswers({});
-    setAutreAnswers({});
-  }, [selectedService]);
+  // ─── Accesseurs courants ──────────────────────────────────────────────────
+
+  const currentService = selectedServices[currentServiceIndex] ?? null;
+  const currentData: ServiceFormData = serviceData[currentService?.id ?? ""] ?? emptyFormData();
+
+  function updateCurrentData(updater: (prev: ServiceFormData) => ServiceFormData) {
+    if (!currentService) return;
+    setServiceData(prev => ({
+      ...prev,
+      [currentService.id]: updater(prev[currentService.id] ?? emptyFormData()),
+    }));
+  }
 
   // Ordre d'affichage des services
   const defaultOrder = ["Graphisme", "Motion Design", "Site web"];
@@ -203,79 +207,125 @@ export default function BriefPage() {
     ...allServices.filter(s => !defaultOrder.includes(s.name) && !defaultOrder.includes(s.category)),
   ];
 
-  // ─── Calcul du total ───────────────────────────────────────────────────────
+  // ─── Toggle service sélectionné ──────────────────────────────────────────
 
-  function getTotal(): number {
-    if (!selectedService) return 0;
-    const base = parseFloat(selectedService.basePrice) || 0;
-    const fixedExtras = selectedService.options
-      .filter(o => !o.isPercent && selectedOptions.includes(o.id))
+  function toggleService(svc: Service) {
+    setSelectedServices(prev => {
+      const exists = prev.some(s => s.id === svc.id);
+      return exists ? prev.filter(s => s.id !== svc.id) : [...prev, svc];
+    });
+  }
+
+  // ─── Calcul du total ──────────────────────────────────────────────────────
+
+  function getTotalForService(svc: Service, optionIds: string[]): number {
+    const base = parseFloat(svc.basePrice) || 0;
+    const fixedExtras = svc.options
+      .filter(o => !o.isPercent && optionIds.includes(o.id))
       .reduce((sum, o) => sum + (parseFloat(o.price) || 0), 0);
     const subtotal = base + fixedExtras;
-    const percentExtra = selectedService.options
-      .filter(o => o.isPercent && selectedOptions.includes(o.id))
+    const percentExtra = svc.options
+      .filter(o => o.isPercent && optionIds.includes(o.id))
       .reduce((max, o) => Math.max(max, parseFloat(o.price) || 0), 0);
     return Math.round(subtotal * (1 + percentExtra / 100));
   }
 
+  function getGrandTotal(): number {
+    return selectedServices.reduce((sum, svc) => {
+      const data = serviceData[svc.id] ?? emptyFormData();
+      return sum + getTotalForService(svc, data.selectedOptions);
+    }, 0);
+  }
+
+  // ─── Options ─────────────────────────────────────────────────────────────
+
   function toggleOption(optId: string) {
-    const opt = selectedService?.options.find(o => o.id === optId);
-    setSelectedOptions(prev => {
-      if (prev.includes(optId)) return prev.filter(o => o !== optId);
+    const opt = currentService?.options.find(o => o.id === optId);
+    updateCurrentData(prev => {
+      const current = prev.selectedOptions;
+      if (current.includes(optId)) return { ...prev, selectedOptions: current.filter(o => o !== optId) };
       if (opt?.isPercent) {
-        const withoutPercents = prev.filter(o =>
-          !selectedService?.options.find(s => s.id === o)?.isPercent
-        );
-        return [...withoutPercents, optId];
+        const withoutPercents = current.filter(o => !currentService?.options.find(s => s.id === o)?.isPercent);
+        return { ...prev, selectedOptions: [...withoutPercents, optId] };
       }
-      return [...prev, optId];
+      return { ...prev, selectedOptions: [...current, optId] };
     });
   }
 
-  // ─── Style visuel ──────────────────────────────────────────────────────────
+  // ─── Style visuel ─────────────────────────────────────────────────────────
 
   function toggleStyle(qIndex: number, choice: string, type: "single" | "multi" | "text") {
-    setStyleAnswers(prev => {
-      const current = prev[qIndex] || [];
-      if (type === "single") return { ...prev, [qIndex]: [choice] };
-      return { ...prev, [qIndex]: current.includes(choice) ? current.filter(c => c !== choice) : [...current, choice] };
+    updateCurrentData(prev => {
+      const current = prev.styleAnswers[qIndex] || [];
+      const updated = type === "single"
+        ? [choice]
+        : current.includes(choice) ? current.filter(c => c !== choice) : [...current, choice];
+      return { ...prev, styleAnswers: { ...prev.styleAnswers, [qIndex]: updated } };
     });
   }
 
   function isStyleSelected(qIndex: number, choice: string) {
-    return (styleAnswers[qIndex] || []).includes(choice);
+    return (currentData.styleAnswers[qIndex] || []).includes(choice);
   }
 
-  // ─── Submit ────────────────────────────────────────────────────────────────
+  // ─── Navigation ──────────────────────────────────────────────────────────
+
+  function goNextFromOptions() {
+    if (currentServiceIndex < selectedServices.length - 1) {
+      setCurrentServiceIndex(i => i + 1);
+      setStep(3);
+    } else {
+      setStep(5);
+    }
+  }
+
+  function goBackFromStyle() {
+    if (currentServiceIndex > 0) {
+      setCurrentServiceIndex(i => i - 1);
+      setStep(4);
+    } else {
+      setStep(2);
+    }
+  }
+
+  function goBackFromContact() {
+    setCurrentServiceIndex(selectedServices.length - 1);
+    setStep(4);
+  }
+
+  // ─── Submit ───────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!clientName || !clientEmail || !selectedService) return;
+    if (!clientName || !clientEmail || selectedServices.length === 0) return;
 
-    const slug = generateSlug(clientName);
-    const newProject = {
-      id: Date.now().toString(),
-      clientName, clientEmail,
-      serviceId: selectedService.id,
-      serviceName: selectedService.name,
-      status: "Brief reçu",
-      slug,
-      createdAt: new Date().toLocaleDateString("fr-FR"),
-      source: "brief_generique",
-      briefData: {
-        selectedService: selectedService.name,
-        serviceCategory: selectedService.category,
-        totalEstime: getTotal(),
-        brandName, sector, brandDesc, target, hasIdentity,
-        styleAnswers, autreAnswers, selectedOptions,
-        clientPhone, clientCity, clientNote, clientSource,
-      },
-    };
-
-    await fetch("/api/brief", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newProject),
-    });
+    for (const svc of selectedServices) {
+      const data = serviceData[svc.id] ?? emptyFormData();
+      const slug = generateSlug(clientName);
+      await fetch("/api/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
+          clientName, clientEmail,
+          serviceId: svc.id,
+          serviceName: svc.name,
+          status: "Brief reçu",
+          slug,
+          createdAt: new Date().toLocaleDateString("fr-FR"),
+          source: "brief_generique",
+          briefData: {
+            selectedService: svc.name,
+            serviceCategory: svc.category,
+            totalEstime: getTotalForService(svc, data.selectedOptions),
+            brandName, sector, brandDesc, target, hasIdentity,
+            styleAnswers: data.styleAnswers,
+            autreAnswers: data.autreAnswers,
+            selectedOptions: data.selectedOptions,
+            clientPhone, clientCity, clientNote, clientSource,
+          },
+        }),
+      });
+    }
     setSubmitted(true);
   }
 
@@ -306,13 +356,10 @@ export default function BriefPage() {
 
   const STEP_LABELS = ["Service", "Contexte", "Style", "Options", "Contact"];
 
-  const catColor = selectedService
-    ? getCategoryColor(selectedService.category)
-    : { bg: "#1A1A2E", color: "#CECBF6" };
-  const styleQuestions = selectedService
-    ? (dbQuestions[selectedService.category]?.length ? dbQuestions[selectedService.category] : STYLE_QUESTIONS[selectedService.category as Category]) || []
+  const styleQuestions = currentService
+    ? (dbQuestions[currentService.category]?.length ? dbQuestions[currentService.category] : STYLE_QUESTIONS[currentService.category as Category]) || []
     : [];
-  const serviceOptions = selectedService?.options || [];
+  const serviceOptions = currentService?.options || [];
 
   // ─── Page de confirmation ──────────────────────────────────────────────────
 
@@ -328,13 +375,36 @@ export default function BriefPage() {
         <p style={{ fontSize: "14px", color: "var(--text2)", lineHeight: 1.7, marginBottom: "28px" }}>
           Merci <strong style={{ color: "var(--text)" }}>{clientName}</strong>. Votre brief a bien été reçu. Vous allez recevoir votre devis à <strong style={{ color: "var(--text)" }}>{clientEmail}</strong>.
         </p>
-        {selectedService && (
-          <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px" }}>
-            <div style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Total estimé</div>
-            <div style={{ fontSize: "12px", color: "var(--text3)", marginBottom: "6px" }}>{selectedService.name}</div>
-            <div style={{ fontSize: "28px", fontWeight: 600, color: "#7F77DD" }}>{getTotal().toLocaleString("fr-FR")} €</div>
+
+        {/* Récap par service */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+          {selectedServices.map(svc => {
+            const data = serviceData[svc.id] ?? emptyFormData();
+            const col = getCategoryColor(svc.category);
+            const svcInfo = SERVICE_INFO.find(s => s.key === svc.category);
+            return (
+              <div key={svc.id} style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "5px", background: col.bg, color: col.color, fontWeight: 500 }}>
+                    {svc.category}
+                  </span>
+                  <span style={{ fontSize: "13px", color: "var(--text2)" }}>{svcInfo?.displayName || svc.name}</span>
+                </div>
+                <span style={{ fontSize: "16px", fontWeight: 600, color: "#7F77DD" }}>
+                  {getTotalForService(svc, data.selectedOptions).toLocaleString("fr-FR")} €
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {selectedServices.length > 1 && (
+          <div style={{ background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: "12px", padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--text2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total estimé</span>
+            <span style={{ fontSize: "24px", fontWeight: 700, color: "#7F77DD" }}>{getGrandTotal().toLocaleString("fr-FR")} €</span>
           </div>
         )}
+
         <p style={{ fontSize: "12px", color: "var(--text3)" }}>Propulsé par <span style={{ color: "#7F77DD", fontWeight: 500 }}>Clari</span></p>
       </div>
     </div>
@@ -356,7 +426,6 @@ export default function BriefPage() {
 
         {/* Right: stepper + toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* Stepper */}
           {step > 0 && <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {STEP_LABELS.map((label, i) => {
             const num = i + 1;
@@ -385,7 +454,6 @@ export default function BriefPage() {
         {/* ── ÉTAPE 0 — Accueil ──────────────────────────────────────────────── */}
         {step === 0 && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingTop: "24px" }}>
-            {/* Avatar */}
             <div style={{
               width: "76px", height: "76px", borderRadius: "22px",
               background: "linear-gradient(135deg, #7F77DD 0%, #9F77DD 100%)",
@@ -396,11 +464,9 @@ export default function BriefPage() {
               <span style={{ fontSize: "24px", fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>BT</span>
             </div>
 
-            {/* Identité */}
             <h1 style={{ fontSize: "22px", fontWeight: 700, color: "var(--text)", marginBottom: "4px" }}>Billale Thiam</h1>
             <p style={{ fontSize: "12px", color: "var(--accent-light)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "36px" }}>Graphisme · Motion Design · Sites web</p>
 
-            {/* Message */}
             <div style={{
               background: "var(--surface)",
               border: "0.5px solid var(--border)",
@@ -421,7 +487,6 @@ export default function BriefPage() {
               </p>
             </div>
 
-            {/* CTA */}
             <button
               onClick={() => setStep(1)}
               style={{
@@ -447,23 +512,23 @@ export default function BriefPage() {
           </div>
         )}
 
-        {/* ── ÉTAPE 1 — Service père ─────────────────────────────────────────── */}
+        {/* ── ÉTAPE 1 — Sélection multi-services ────────────────────────────── */}
         {step === 1 && (
           <div>
             <h1 style={{ fontSize: "24px", fontWeight: 600, color: "var(--text)", marginBottom: "8px", lineHeight: 1.3 }}>
-              Quel service vous intéresse ?
+              Quels services vous intéressent ?
             </h1>
             <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "32px" }}>
-              Sélectionnez le service correspondant à votre projet. Vous choisirez ensuite les options qui vous conviennent.
+              Vous pouvez sélectionner plusieurs services. Le formulaire vous guidera pour chacun d&apos;eux.
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
               {sortedServices.map((svc) => {
-                const isSelected = selectedService?.id === svc.id;
+                const isSelected = selectedServices.some(s => s.id === svc.id);
                 const col = getCategoryColor(svc.category);
                 const svcInfo = SERVICE_INFO.find(s => s.key === svc.category);
                 return (
-                  <div key={svc.id} onClick={() => setSelectedService(svc)}
+                  <div key={svc.id} onClick={() => toggleService(svc)}
                     style={{ display: "flex", alignItems: "center", gap: "18px", padding: "20px 22px", background: isSelected ? col.bg : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? col.color : "var(--border)"}`, borderRadius: "14px", cursor: "pointer", transition: "all 100ms" }}>
                     <div style={{ color: isSelected ? col.color : "var(--text3)", flexShrink: 0 }}>
                       {svcInfo?.icon || (
@@ -485,16 +550,32 @@ export default function BriefPage() {
                       </div>
                       <div style={{ fontSize: "10px", color: "var(--text3)" }}>à partir de</div>
                     </div>
-                    <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: `1.5px solid ${isSelected ? col.color : "#444"}`, background: isSelected ? col.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {isSelected && <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#fff" }} />}
+                    {/* Checkbox carrée */}
+                    <div style={{ width: "20px", height: "20px", borderRadius: "5px", border: `1.5px solid ${isSelected ? col.color : "#444"}`, background: isSelected ? col.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {isSelected && <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5l3 3L9.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            <button onClick={() => setStep(2)} disabled={!selectedService} style={{ ...btnPrimary, width: "100%", opacity: selectedService ? 1 : 0.4 }}>
-              Continuer →
+            {/* Résumé sélection */}
+            {selectedServices.length > 0 && (
+              <div style={{ marginBottom: "16px", display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {selectedServices.map(svc => {
+                  const col = getCategoryColor(svc.category);
+                  const svcInfo = SERVICE_INFO.find(s => s.key === svc.category);
+                  return (
+                    <span key={svc.id} style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "6px", background: col.bg, color: col.color, fontWeight: 500 }}>
+                      {svcInfo?.displayName || svc.name}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            <button onClick={() => { setCurrentServiceIndex(0); setStep(2); }} disabled={selectedServices.length === 0} style={{ ...btnPrimary, width: "100%", opacity: selectedServices.length > 0 ? 1 : 0.4 }}>
+              Continuer → {selectedServices.length > 1 ? `(${selectedServices.length} services)` : ""}
             </button>
           </div>
         )}
@@ -502,13 +583,20 @@ export default function BriefPage() {
         {/* ── ÉTAPE 2 — Contexte de la marque ───────────────────────────────── */}
         {step === 2 && (
           <div>
-            {selectedService && (
-              <div style={{ marginBottom: "8px" }}>
-                <span style={{ fontSize: "11px", fontWeight: 500, padding: "3px 10px", borderRadius: "6px", background: catColor.bg, color: catColor.color }}>{selectedService.name}</span>
-              </div>
-            )}
+            {/* Badges des services sélectionnés */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "10px" }}>
+              {selectedServices.map(svc => {
+                const col = getCategoryColor(svc.category);
+                const svcInfo = SERVICE_INFO.find(s => s.key === svc.category);
+                return (
+                  <span key={svc.id} style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "6px", background: col.bg, color: col.color, fontWeight: 500 }}>
+                    {svcInfo?.displayName || svc.name}
+                  </span>
+                );
+              })}
+            </div>
             <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Contexte de votre marque</h2>
-            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Ces informations permettent de comprendre votre univers avant d&apos;aborder les choix visuels.</p>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Ces informations s&apos;appliquent à tous vos services.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
               <div>
@@ -550,11 +638,24 @@ export default function BriefPage() {
           </div>
         )}
 
-        {/* ── ÉTAPE 3 — Composition ─────────────────────────────────────────── */}
-        {step === 3 && (
+        {/* ── ÉTAPE 3 — Style visuel (par service) ─────────────────────────── */}
+        {step === 3 && currentService && (
           <div>
+            {/* Badge service en cours */}
+            <div style={{ marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+              {selectedServices.length > 1 && (
+                <span style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 500 }}>
+                  Service {currentServiceIndex + 1}/{selectedServices.length}
+                </span>
+              )}
+              {selectedServices.length > 1 && <span style={{ color: "var(--border)" }}>·</span>}
+              <span style={{ fontSize: "11px", fontWeight: 500, padding: "3px 10px", borderRadius: "6px", background: getCategoryColor(currentService.category).bg, color: getCategoryColor(currentService.category).color }}>
+                {SERVICE_INFO.find(s => s.key === currentService.category)?.displayName || currentService.name}
+              </span>
+            </div>
+
             <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px", letterSpacing: "0.04em", textTransform: "uppercase" }}>Composition</h2>
-            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Décrivez votre projet dans le détail. Ces réponses servent de base à votre cahier des charges — soyez aussi précis que possible.</p>
+            <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>Décrivez votre projet dans le détail.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "28px", marginBottom: "32px" }}>
               {styleQuestions.map((q, qIndex) => (
@@ -565,8 +666,8 @@ export default function BriefPage() {
                   </div>
                   {q.type === "text" ? (
                     <textarea
-                      value={(styleAnswers[qIndex] || [])[0] || ""}
-                      onChange={(e) => setStyleAnswers(prev => ({ ...prev, [qIndex]: [e.target.value] }))}
+                      value={(currentData.styleAnswers[qIndex] || [])[0] || ""}
+                      onChange={(e) => updateCurrentData(prev => ({ ...prev, styleAnswers: { ...prev.styleAnswers, [qIndex]: [e.target.value] } }))}
                       placeholder={q.placeholder || ""}
                       rows={2}
                       style={{ ...inputStyle, resize: "vertical" }}
@@ -590,8 +691,8 @@ export default function BriefPage() {
                       </div>
                       {isStyleSelected(qIndex, "Autre") && (
                         <textarea
-                          value={autreAnswers[qIndex] || ""}
-                          onChange={(e) => setAutreAnswers(prev => ({ ...prev, [qIndex]: e.target.value }))}
+                          value={currentData.autreAnswers[qIndex] || ""}
+                          onChange={(e) => updateCurrentData(prev => ({ ...prev, autreAnswers: { ...prev.autreAnswers, [qIndex]: e.target.value } }))}
                           placeholder="Précisez..."
                           rows={2}
                           style={{ ...inputStyle, resize: "vertical", marginTop: "10px" }}
@@ -604,15 +705,28 @@ export default function BriefPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setStep(2)} style={btnSecondary}>← Retour</button>
+              <button onClick={goBackFromStyle} style={btnSecondary}>← Retour</button>
               <button onClick={() => setStep(4)} style={btnPrimary}>Continuer →</button>
             </div>
           </div>
         )}
 
-        {/* ── ÉTAPE 4 — Options ─────────────────────────────────────────────── */}
-        {step === 4 && (
+        {/* ── ÉTAPE 4 — Options (par service) ───────────────────────────────── */}
+        {step === 4 && currentService && (
           <div>
+            {/* Badge service en cours */}
+            <div style={{ marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+              {selectedServices.length > 1 && (
+                <span style={{ fontSize: "11px", color: "var(--text3)", fontWeight: 500 }}>
+                  Service {currentServiceIndex + 1}/{selectedServices.length}
+                </span>
+              )}
+              {selectedServices.length > 1 && <span style={{ color: "var(--border)" }}>·</span>}
+              <span style={{ fontSize: "11px", fontWeight: 500, padding: "3px 10px", borderRadius: "6px", background: getCategoryColor(currentService.category).bg, color: getCategoryColor(currentService.category).color }}>
+                {SERVICE_INFO.find(s => s.key === currentService.category)?.displayName || currentService.name}
+              </span>
+            </div>
+
             <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--text)", marginBottom: "8px" }}>Options et livrables</h2>
             <p style={{ fontSize: "13px", color: "var(--text2)", marginBottom: "28px" }}>
               {serviceOptions.length > 0 ? "Sélectionnez les options souhaitées. Le total se met à jour en temps réel." : "Aucune option supplémentaire pour cette prestation."}
@@ -620,11 +734,10 @@ export default function BriefPage() {
 
             {serviceOptions.length > 0 ? (
               <div style={{ marginBottom: "32px" }}>
-                {/* Options fixes */}
                 {serviceOptions.filter(o => !o.isPercent).length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
                     {serviceOptions.filter(o => !o.isPercent).map(opt => {
-                      const isSelected = selectedOptions.includes(opt.id);
+                      const isSelected = currentData.selectedOptions.includes(opt.id);
                       return (
                         <div key={opt.id} onClick={() => toggleOption(opt.id)}
                           style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "#1A1A2E" : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#7F77DD" : "var(--border)"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
@@ -643,7 +756,6 @@ export default function BriefPage() {
                   </div>
                 )}
 
-                {/* Délais en % */}
                 {serviceOptions.filter(o => o.isPercent).length > 0 && (
                   <div>
                     <div style={{ fontSize: "11px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
@@ -651,7 +763,7 @@ export default function BriefPage() {
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {serviceOptions.filter(o => o.isPercent).map(opt => {
-                        const isSelected = selectedOptions.includes(opt.id);
+                        const isSelected = currentData.selectedOptions.includes(opt.id);
                         return (
                           <div key={opt.id} onClick={() => toggleOption(opt.id)}
                             style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: isSelected ? "rgba(239,159,39,0.08)" : "var(--surface)", border: `${isSelected ? "1.5px" : "0.5px"} solid ${isSelected ? "#EF9F27" : "var(--border)"}`, borderRadius: "10px", cursor: "pointer", transition: "all 100ms" }}>
@@ -677,7 +789,11 @@ export default function BriefPage() {
 
             <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={() => setStep(3)} style={btnSecondary}>← Retour</button>
-              <button onClick={() => setStep(5)} style={btnPrimary}>Continuer →</button>
+              <button onClick={goNextFromOptions} style={btnPrimary}>
+                {currentServiceIndex < selectedServices.length - 1
+                  ? `Passer au service suivant →`
+                  : "Continuer →"}
+              </button>
             </div>
           </div>
         )}
@@ -721,7 +837,7 @@ export default function BriefPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setStep(4)} style={btnSecondary}>← Retour</button>
+              <button onClick={goBackFromContact} style={btnSecondary}>← Retour</button>
               <button onClick={handleSubmit} disabled={!clientName || !clientEmail} style={{ ...btnPrimary, opacity: clientName && clientEmail ? 1 : 0.4 }}>
                 Envoyer mon brief →
               </button>
@@ -731,24 +847,24 @@ export default function BriefPage() {
       </div>
 
       {/* ── Barre de prix sticky ──────────────────────────────────────────── */}
-      {step > 1 && selectedService && (
+      {step > 1 && selectedServices.length > 0 && (
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--bg-blur)", borderTop: "0.5px solid var(--border)", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(8px)" }}>
           <div>
             <div style={{ fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Total estimé</div>
             <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--text)" }}>
-              {getTotal().toLocaleString("fr-FR")} €
-              {selectedOptions.length > 0 && (
-                <span style={{ fontSize: "11px", color: "#7F77DD", fontWeight: 400, marginLeft: "8px" }}>
-                  {selectedOptions.length} option{selectedOptions.length > 1 ? "s" : ""}
-                </span>
-              )}
+              {getGrandTotal().toLocaleString("fr-FR")} €
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "12px", color: "var(--text2)", fontWeight: 500 }}>{SERVICE_INFO.find(s => s.key === selectedService.category)?.displayName || selectedService.name}</div>
-            <div style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: catColor.bg, color: catColor.color, display: "inline-block", marginTop: "3px" }}>
-              {selectedService.category}
-            </div>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "4px", maxWidth: "55%" }}>
+            {selectedServices.map(svc => {
+              const col = getCategoryColor(svc.category);
+              const svcInfo = SERVICE_INFO.find(s => s.key === svc.category);
+              return (
+                <span key={svc.id} style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "4px", background: col.bg, color: col.color, fontWeight: 500 }}>
+                  {svcInfo?.displayName || svc.name}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}
